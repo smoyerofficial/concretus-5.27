@@ -1,6 +1,22 @@
-// Concretus - Core Application Controller (RTL Mobile-Optimized)
+// Concretus - Core Application Controller (Supabase Integrated)
 
-// --- Mock / Seed Data (Updated with real-world staged statuses) ---
+// === SUPABASE CONFIGURATION ===
+// Replace these placeholders with your actual Supabase URL and Anon Key
+const SUPABASE_URL = "https://vsgnqebypdyhakibruqj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzZ25xZWJ5cGR5aGFraWJydXFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MDU2OTAsImV4cCI6MjA5NTQ4MTY5MH0.xno6BzFL917b7vjatJiw43aFmE-lKR0rNbgmZ7RyrtI";
+
+let supabaseClient = null;
+
+// Prevent naming collisions with window.supabase library
+if (SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_ANON_KEY !== "YOUR_SUPABASE_ANON_KEY") {
+  if (window.supabase) {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } else {
+    console.error("Supabase CDN failed to load.");
+  }
+}
+
+// Fallback seed data if Supabase credentials are not configured
 const SEED_BATCH_DATA = [
   {
     id: "34901", 
@@ -31,7 +47,7 @@ const SEED_BATCH_DATA = [
     samplesCount: 6,
     dimension: 150,
     area: 22500,
-    status: "completed", // Both 7d and 28d completed -> ready for Certificate view
+    status: "completed",
     castDate: "2026-05-01",
     testDate: "2026-05-29",
     failureLoad7d: 745.0,
@@ -42,75 +58,9 @@ const SEED_BATCH_DATA = [
     certSerial: "CERT-2026-10492",
     remarks: "הבטון סופק בטמפרטורה תקינה, לא הוספו מים בשטח.",
     signature1: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAABGAQMAaad5K2v3AAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAABRJREFUeNpjYBgFo2AUjIJRMApIBwAGQAABeW2tagAAAABJRU5ErkJggg=="
-  },
-  {
-    id: "34902",
-    projectNo: "707303/1",
-    orderNo: "95205419",
-    clientName: "תעשיות רדימיקס בע״מ",
-    contractor: "סולל בונה בע״מ",
-    inspector: "אינג' אברהם כהן",
-    siteAddress: "מרחב דרום באר שבע",
-    buildingDesc: "בניין משרדים גובה 5 קומות",
-    element: "עמוד",
-    volume: 12,
-    supplier: "רדימיקס",
-    isCertified: "כן",
-    concreteType: "ב-40",
-    cementType: "צ.פ",
-    aggregateSize: "עדש: כ-14 מ״מ",
-    exposureClass: 3,
-    characterization: ["משאבה", "דחוס"],
-    sampledFrom: "משאבה",
-    slump: 9,
-    deliveryNote: "95205420",
-    mixerNo: "ערבל 350",
-    batchNo: "2",
-    samplerName: "משה לוי",
-    timeStart: "14:15",
-    timeEnd: "14:45",
-    samplesCount: 6,
-    dimension: 150,
-    area: 22500,
-    status: "tested_7d", // 7d test completed, awaiting 28d compression test
-    castDate: "2026-05-18",
-    failureLoad7d: 820.0,
-    strength7d: 36.44,
-    remarks: "היציקה בוצעה ללא עיכובים.",
-    signature1: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAABGAQMAaad5K2v3AAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAABRJREFUeNpjYBgFo2AUjIJRMApIBwAGQAABeW2tagAAAABJRU5ErkJggg=="
-  },
-  {
-    id: "44102",
-    projectNo: "802111/2",
-    orderNo: "91024512",
-    clientName: "משרד הביטחון",
-    contractor: "דניה סיבוס בע״מ",
-    inspector: "אינג' דניאל לוי",
-    siteAddress: "כביש 40 - גשר באר שבע",
-    buildingDesc: "גשר בטון דרוך",
-    element: "יסודות",
-    volume: 24,
-    supplier: "הנסון",
-    isCertified: "כן",
-    concreteType: "ב-30",
-    cementType: "צ.פ",
-    aggregateSize: "פוליה גדולה / רגילה: כ-25 מ״מ",
-    exposureClass: 4,
-    characterization: ["רגיל", "בנטונייט"],
-    sampledFrom: "הערבל",
-    slump: 7,
-    deliveryNote: "8820412B",
-    mixerNo: "ערבל 102",
-    batchNo: "1",
-    samplerName: "דני כהן",
-    status: "transit", // Awaiting 7d test
-    castDate: "2026-05-24",
-    remarks: "נלקחו דגימות לפי פרוטוקול נטילה בנטונייט.",
-    signature1: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAABGAQMAaad5K2v3AAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAABRJREFUeNpjYBgFo2AUjIJRMApIBwAGQAABeW2tagAAAABJRU5ErkJggg=="
   }
 ];
 
-// Reference minimum compressive strength limits (in MPa) based on concrete type
 const CONCRETE_CLASS_LIMITS = {
   "ב-15": 15,
   "ב-20": 20,
@@ -123,50 +73,286 @@ const CONCRETE_CLASS_LIMITS = {
 
 // --- Application Core State ---
 let cubes = [];
+let activeUser = null;
+let activeUserRole = "field_worker"; 
+let isRegisterMode = false;
+
 let activeWaybillCube = null;
 let activeTestingCube = null;
 let activeDimension = 150; 
 let isSafetyShieldClosed = false;
 let isCrushingInProgress = false;
 
-// Double canvas context tracking
 let canvases = {};
 let contexts = {};
 let drawingStates = {};
-
-// Default values for adjustable fields
 let values = { volume: 8, slump: 8, samples: 6, exposure: 2 };
 
 // --- Initialize App ---
 document.addEventListener("DOMContentLoaded", () => {
-  loadFreshData();
-
   setupRouter();
   
-  // Set default date picker to today
   const dateInput = document.getElementById("casting-date");
   if (dateInput) dateInput.valueAsDate = new Date();
 
-  // Load and render datasets
+  if (supabaseClient) {
+    checkActiveSession();
+  } else {
+    document.getElementById("auth-panel").classList.add("hidden");
+    document.getElementById("app-wrapper").classList.remove("hidden");
+    console.warn("Supabase keys not found. Running in local fallback mode.");
+    loadFallbackData();
+  }
+});
+
+// --- Fallback Local Methods ---
+function loadFallbackData() {
+  const stored = localStorage.getItem("concretus_is_cubes");
+  if (stored) {
+    cubes = JSON.parse(stored);
+  } else {
+    cubes = [...SEED_BATCH_DATA];
+    localStorage.setItem("concretus_is_cubes", JSON.stringify(cubes));
+  }
   renderDashboardCubes();
   renderLedgerTable();
   renderLabQueue();
   renderAnalyticsDashboard();
   updateHeaderStats();
-});
-
-// --- State Management ---
-function saveState() {
-  localStorage.setItem("concretus_is_cubes", JSON.stringify(cubes));
 }
 
-function loadFreshData() {
-  const storedCubes = localStorage.getItem("concretus_is_cubes");
-  if (storedCubes) {
-    cubes = JSON.parse(storedCubes);
+// --- Check Active Session & Profile Status ---
+async function checkActiveSession() {
+  try {
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    if (error) throw error;
+    
+    if (session) {
+      await establishSessionUser(session.user);
+    } else {
+      showAuthScreen();
+    }
+  } catch (err) {
+    console.error("Session verification error:", err.message);
+    showAuthScreen();
+  }
+}
+
+async function establishSessionUser(user) {
+  activeUser = user;
+  
+  try {
+    // Attempt to query the profiles table using maybeSingle to avoid crash on empty rows
+    let { data, error } = await supabaseClient
+      .from("profiles")
+      .select("role, full_name")
+      .eq("id", user.id)
+      .maybeSingle();
+      
+    if (error) {
+      console.warn("Could not retrieve profile:", error.message);
+    }
+
+    // Auto-recreate profiles if the database row does not exist (e.g., if user was made in manual dashboard)
+    if (!data) {
+      const fallbackName = user.user_metadata?.full_name || user.email.split('@')[0];
+      const fallbackRole = user.user_metadata?.role || "field_worker";
+      
+      const { data: newProfile, error: insertError } = await supabaseClient
+        .from("profiles")
+        .insert({
+          id: user.id,
+          full_name: fallbackName,
+          role: fallbackRole
+        })
+        .select()
+        .maybeSingle();
+        
+      if (insertError) {
+        console.error("Failed to automatically generate profile row:", insertError.message);
+        data = { role: fallbackRole, full_name: fallbackName };
+      } else {
+        data = newProfile;
+      }
+    }
+    
+    activeUserRole = data ? data.role : "field_worker";
+    const userFullName = data ? data.full_name : user.email;
+    
+    // Assign role-based visual configurations
+    const wrapper = document.getElementById("app-wrapper");
+    wrapper.className = "app-container role-" + activeUserRole;
+    
+    document.getElementById("current-user-name").textContent = userFullName;
+    document.getElementById("current-user-role").textContent = activeUserRole === "manager" ? "מנהל מערכת" : "דוגם שטח";
+    document.getElementById("current-user-avatar").textContent = userFullName.slice(0, 2).toUpperCase();
+
+    document.getElementById("auth-panel").classList.add("hidden");
+    document.getElementById("app-wrapper").classList.remove("hidden");
+
+    if (activeUserRole === "field_worker") {
+      switchActiveView("casting-view");
+    } else {
+      switchActiveView("dashboard-view");
+    }
+    
+    await syncAllDataFromSupabase();
+
+  } catch (err) {
+    console.error("Session establishment error:", err.message);
+    showAuthScreen();
+  }
+}
+
+function showAuthScreen() {
+  document.getElementById("app-wrapper").classList.add("hidden");
+  document.getElementById("auth-panel").classList.remove("hidden");
+}
+
+// --- Supabase Authentication Methods ---
+async function handleAuthSubmit(e) {
+  e.preventDefault();
+  const email = document.getElementById("auth-email").value.trim();
+  const password = document.getElementById("auth-password").value;
+  const fullname = document.getElementById("auth-fullname").value.trim();
+  const feedback = document.getElementById("auth-feedback");
+
+  feedback.style.display = "none";
+
+  if (!supabaseClient) {
+    alert("Supabase config invalid or incomplete.");
+    return;
+  }
+
+  try {
+    if (isRegisterMode) {
+      // Sign Up Process
+      const { data, error } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullname || "משתמש חדש",
+            role: "field_worker" // Enforced default role metadata
+          }
+        }
+      });
+      if (error) throw error;
+      
+      feedback.style.display = "block";
+      feedback.className = "feedback success";
+      feedback.textContent = "הרשמה הושלמה בהצלחה! כעת ניתן להתחבר.";
+      toggleAuthMode();
+    } else {
+      // Sign In Process
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+      if (error) throw error;
+      
+      await establishSessionUser(data.user);
+    }
+  } catch (err) {
+    feedback.style.display = "block";
+    feedback.className = "feedback error";
+    feedback.textContent = "שגיאה: " + err.message;
+  }
+}
+
+async function handleSignOut() {
+  if (supabaseClient) {
+    await supabaseClient.auth.signOut();
+  }
+  activeUser = null;
+  showAuthScreen();
+}
+
+function toggleAuthMode() {
+  isRegisterMode = !isRegisterMode;
+  const title = document.getElementById("auth-title");
+  const submitBtn = document.getElementById("btn-auth-submit");
+  const toggleText = document.getElementById("auth-toggle-text");
+  const regFields = document.getElementById("register-only-fields");
+
+  if (isRegisterMode) {
+    title.textContent = "הרשמת משתמש חדש";
+    submitBtn.textContent = "צור חשבון";
+    toggleText.textContent = "כבר רשום? התחבר כאן";
+    regFields.classList.remove("hidden");
   } else {
-    cubes = [...SEED_BATCH_DATA];
-    saveState();
+    title.textContent = "כניסה למערכת";
+    submitBtn.textContent = "התחבר";
+    toggleText.textContent = "אין לך חשבון? הרשם כאן";
+    regFields.classList.add("hidden");
+  }
+}
+
+// --- Sync Data ---
+async function syncAllDataFromSupabase() {
+  if (!supabaseClient) return;
+  
+  triggerSyncPulseAnimation("טוען נתונים מהענן...");
+  
+  try {
+    const { data, error } = await supabaseClient
+      .from("concrete_samples")
+      .select("*")
+      .order("created_at", { ascending: false });
+      
+    if (error) throw error;
+    
+    cubes = data.map(dbRow => ({
+      id: dbRow.id,
+      projectNo: dbRow.project_no,
+      orderNo: dbRow.order_no,
+      clientName: dbRow.client_name,
+      contractor: dbRow.contractor,
+      inspector: dbRow.inspector,
+      siteAddress: dbRow.site_address,
+      buildingDesc: dbRow.building_desc,
+      element: dbRow.element,
+      volume: Number(dbRow.volume),
+      supplier: dbRow.supplier,
+      isCertified: dbRow.is_certified,
+      concreteType: dbRow.concrete_type,
+      cementType: dbRow.cement_type,
+      aggregateSize: dbRow.aggregate_size,
+      exposureClass: dbRow.exposure_class,
+      characterization: dbRow.characterization || [],
+      sampledFrom: dbRow.sampled_from,
+      slump: dbRow.slump,
+      deliveryNote: dbRow.delivery_note,
+      mixerNo: dbRow.mixer_no,
+      batchNo: dbRow.batch_no,
+      samplerName: dbRow.sampler_name,
+      timeStart: dbRow.time_start,
+      timeEnd: dbRow.time_end,
+      samplesCount: dbRow.samples_count,
+      dimension: dbRow.dimension,
+      area: dbRow.area,
+      status: dbRow.status,
+      castDate: dbRow.cast_date,
+      testDate: dbRow.test_date,
+      failureLoad7d: dbRow.failure_load_7d ? Number(dbRow.failure_load_7d) : null,
+      strength7d: dbRow.strength_7d ? Number(dbRow.strength_7d) : null,
+      failureLoad28d: dbRow.failure_load_28d ? Number(dbRow.failure_load_28d) : null,
+      strength28d: dbRow.strength_28d ? Number(dbRow.strength_28d) : null,
+      conformity: dbRow.conformity,
+      certSerial: dbRow.cert_serial,
+      remarks: dbRow.remarks,
+      signature1: dbRow.signature1,
+      signature2: dbRow.signature2
+    }));
+
+    renderDashboardCubes();
+    renderLedgerTable();
+    renderLabQueue();
+    renderAnalyticsDashboard();
+    updateHeaderStats();
+
+  } catch (err) {
+    console.error("Fetch syncing error:", err.message);
   }
 }
 
@@ -175,18 +361,23 @@ function setupRouter() {
   const navItems = document.querySelectorAll(".sidebar .nav-item");
   navItems.forEach(item => {
     item.addEventListener("click", () => {
+      const targetView = item.getAttribute("data-view");
+      if (activeUserRole === "field_worker" && ["dashboard-view", "lab-view", "reports-view"].includes(targetView)) {
+        alert("שגיאה: אין לך הרשאות לגשת לעמוד זה.");
+        return;
+      }
+
       navItems.forEach(i => i.classList.remove("active"));
       item.classList.add("active");
-
-      const targetView = item.getAttribute("data-view");
       switchActiveView(targetView);
     });
   });
 }
 
 function switchActiveView(viewId) {
-  // Always reload the absolute freshest data before switching views to guarantee alignment
-  loadFreshData();
+  if (activeUserRole === "field_worker" && ["dashboard-view", "lab-view", "reports-view"].includes(viewId)) {
+    viewId = "casting-view";
+  }
 
   document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active-view"));
   const targetViewPanel = document.getElementById(viewId);
@@ -194,7 +385,6 @@ function switchActiveView(viewId) {
     targetViewPanel.classList.add("active-view");
   }
 
-  // Handle active navigation classes
   document.querySelectorAll(".sidebar .nav-item").forEach(item => {
     if (item.getAttribute("data-view") === viewId) {
       item.classList.add("active");
@@ -244,7 +434,6 @@ function updateHeaderStats() {
   const statTransit = document.getElementById("stat-transit");
   const statCompliance = document.getElementById("stat-compliance");
   const statFailed = document.getElementById("stat-failed");
-  const transitNotifCount = document.getElementById("transit-notif-count");
 
   const total = cubes.length;
   const transit = cubes.filter(c => c.status === "transit" || c.status === "tested_7d").length;
@@ -260,7 +449,6 @@ function updateHeaderStats() {
   if (statTransit) statTransit.textContent = transit;
   if (statCompliance) statCompliance.textContent = compliance.toFixed(1) + "%";
   if (statFailed) statFailed.textContent = failed;
-  if (transitNotifCount) transitNotifCount.textContent = transit;
 }
 
 // --- Step 1: Sticker Verification Logic ---
@@ -328,7 +516,6 @@ function toggleAccordion(header) {
   const accordion = header.parentElement;
   accordion.classList.toggle("active");
 
-  // Force-resize and initialize signature canvases dynamically upon opening Section 5
   if (accordion.id === "accordion-section-5" && accordion.classList.contains("active")) {
     setTimeout(() => {
       initSignatureCanvas(1, 'canvas-1', 'sig-text-1');
@@ -351,7 +538,6 @@ function selectOption(groupId, element, val) {
   if (groupId === "sampled-from-group") document.getElementById("selected-sampled-from").value = val;
 }
 
-// --- Checkbox selection mapping ---
 function toggleCheckbox(tile) {
   const checkbox = tile.querySelector('input[type="checkbox"]');
   checkbox.checked = !checkbox.checked;
@@ -517,10 +703,18 @@ function renderDashboardCubes() {
         switchActiveView("dispatch-view");
         loadWaybillDetails(cube.id);
       } else if (cube.status === "transit" || cube.status === "tested_7d") {
-        switchActiveView("lab-view");
-        loadCubeToTestingChamber(cube.id);
+        if (activeUserRole === "manager") {
+          switchActiveView("lab-view");
+          loadCubeToTestingChamber(cube.id);
+        } else {
+          alert("פעולה חסומה: רק מנהלי מעבדה יכולים לגשת לחדר הבדיקות והלחיצה.");
+        }
       } else if (cube.status === "completed") {
-        openCertificateModal(cube.id);
+        if (activeUserRole === "manager") {
+          openCertificateModal(cube.id);
+        } else {
+          alert("פעולה חסומה: רק מנהלים מוסמכים יכולים לפתוח תעודות בדיקה.");
+        }
       }
     });
 
@@ -559,7 +753,7 @@ function renderCastingSideList() {
 }
 
 // --- Concrete Cast Form Submission ---
-function handleCastSubmission(e) {
+async function handleCastSubmission(e) {
   e.preventDefault();
 
   if (isSignatureCanvasEmpty(1)) {
@@ -634,10 +828,57 @@ function handleCastSubmission(e) {
     signature2: isSignatureCanvasEmpty(2) ? "" : canvases[2].toDataURL()
   };
 
-  cubes.unshift(newCube);
-  saveState();
-
-  triggerSyncPulseAnimation("מסנכרן נטילה מול ענן...");
+  if (supabaseClient) {
+    triggerSyncPulseAnimation("שומר נטילה בענן...");
+    try {
+      const { error } = await supabaseClient.from("concrete_samples").insert({
+        id: newCube.id,
+        project_no: newCube.projectNo,
+        order_no: newCube.orderNo,
+        client_name: newCube.clientName,
+        contractor: newCube.contractor,
+        inspector: newCube.inspector,
+        site_address: newCube.siteAddress,
+        building_desc: newCube.buildingDesc,
+        element: newCube.element,
+        volume: newCube.volume,
+        supplier: newCube.supplier,
+        is_certified: newCube.isCertified,
+        concrete_type: newCube.concreteType,
+        cement_type: newCube.cementType,
+        aggregate_size: newCube.aggregateSize,
+        exposure_class: newCube.exposureClass,
+        characterization: newCube.characterization,
+        sampled_from: newCube.sampledFrom,
+        slump: newCube.slump,
+        delivery_note: newCube.deliveryNote,
+        mixer_no: newCube.mixerNo,
+        batch_no: newCube.batchNo,
+        sampler_name: newCube.samplerName,
+        time_start: newCube.timeStart,
+        time_end: newCube.timeEnd,
+        samples_count: newCube.samplesCount,
+        dimension: newCube.dimension,
+        area: newCube.area,
+        status: newCube.status,
+        cast_date: newCube.castDate,
+        remarks: newCube.remarks,
+        signature1: newCube.signature1,
+        signature2: newCube.signature2,
+        created_by: activeUser.id
+      });
+      if (error) throw error;
+      
+      await syncAllDataFromSupabase();
+    } catch (err) {
+      alert("שגיאה בשמירה בענן: " + err.message);
+      return;
+    }
+  } else {
+    cubes.unshift(newCube);
+    saveState();
+    triggerSyncPulseAnimation("מסנכרן נטילה מול ענן...");
+  }
 
   setTimeout(() => {
     switchActiveView("dispatch-view");
@@ -786,13 +1027,30 @@ function drawProceduralQRCode(text, canvasId) {
   }
 }
 
-function dispatchActiveCube() {
+async function dispatchActiveCube() {
   if (!activeWaybillCube) return;
 
   activeWaybillCube.status = "transit";
-  saveState();
 
-  triggerSyncPulseAnimation("מעדכן סטטוס שילוח...");
+  if (supabaseClient) {
+    triggerSyncPulseAnimation("מעדכן סטטוס שילוח...");
+    try {
+      const { error } = await supabaseClient
+        .from("concrete_samples")
+        .update({ status: "transit" })
+        .eq("id", activeWaybillCube.id);
+      
+      if (error) throw error;
+      
+      await syncAllDataFromSupabase();
+    } catch (err) {
+      alert("שגיאה בעדכון השילוח: " + err.message);
+      return;
+    }
+  } else {
+    saveState();
+    triggerSyncPulseAnimation("מעדכן סטטוס שילוח...");
+  }
 
   setTimeout(() => {
     renderLedgerTable();
@@ -970,7 +1228,7 @@ function calculateOnTheFlyStrength(age) {
 }
 
 // --- Staged Manual Result Submission ---
-function saveManualCrushResults() {
+async function saveManualCrushResults() {
   if (!activeTestingCube) return;
 
   const area = activeTestingCube.area;
@@ -991,14 +1249,32 @@ function saveManualCrushResults() {
     activeTestingCube.failureLoad7d = load7d;
     activeTestingCube.strength7d = parseFloat(strength7d.toFixed(2));
     
-    // Explicit array state update to secure memory sync
-    const idx = cubes.findIndex(c => c.id === activeTestingCube.id);
-    if (idx !== -1) {
-      cubes[idx] = { ...activeTestingCube };
+    if (supabaseClient) {
+      triggerSyncPulseAnimation("שומר תוצאות 7 ימים...");
+      try {
+        const { error } = await supabaseClient
+          .from("concrete_samples")
+          .update({
+            status: "tested_7d",
+            failure_load_7d: load7d,
+            strength_7d: activeTestingCube.strength7d
+          })
+          .eq("id", activeTestingCube.id);
+        
+        if (error) throw error;
+        await syncAllDataFromSupabase();
+      } catch (err) {
+        alert("שגיאה בשמירה: " + err.message);
+        return;
+      }
+    } else {
+      const idx = cubes.findIndex(c => c.id === activeTestingCube.id);
+      if (idx !== -1) {
+        cubes[idx] = { ...activeTestingCube };
+      }
+      saveState();
+      triggerSyncPulseAnimation("שומר תוצאות 7 ימים...");
     }
-
-    saveState();
-    triggerSyncPulseAnimation("שומר תוצאות 7 ימים...");
 
     setTimeout(() => {
       resetCrusherState();
@@ -1030,17 +1306,36 @@ function saveManualCrushResults() {
     activeTestingCube.certSerial = certSerial;
     activeTestingCube.testDate = new Date().toISOString().split('T')[0];
 
-    // Explicit array state update to secure memory sync
-    const idx = cubes.findIndex(c => c.id === activeTestingCube.id);
-    if (idx !== -1) {
-      cubes[idx] = { ...activeTestingCube };
+    if (supabaseClient) {
+      triggerSyncPulseAnimation("מפיק תעודת בדיקה...");
+      try {
+        const { error } = await supabaseClient
+          .from("concrete_samples")
+          .update({
+            status: "completed",
+            failure_load_28d: load28d,
+            strength_28d: activeTestingCube.strength28d,
+            conformity: conformity,
+            cert_serial: certSerial,
+            test_date: activeTestingCube.testDate
+          })
+          .eq("id", activeTestingCube.id);
+        
+        if (error) throw error;
+        await syncAllDataFromSupabase();
+      } catch (err) {
+        alert("שגיאה בהפקת תעודה: " + err.message);
+        return;
+      }
+    } else {
+      const idx = cubes.findIndex(c => c.id === activeTestingCube.id);
+      if (idx !== -1) {
+        cubes[idx] = { ...activeTestingCube };
+      }
+      saveState();
+      triggerSyncPulseAnimation("מפיק תעודת בדיקה...");
+      renderAnalyticsDashboard(); 
     }
-
-    saveState();
-    triggerSyncPulseAnimation("מפיק תעודת בדיקה...");
-
-    // INSTANTLY update the analytics and completed ledger DOM so it matches state immediately!
-    renderAnalyticsDashboard(); 
 
     document.getElementById("simulator-status-panel").innerHTML = `
       <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; direction: rtl;">
@@ -1060,7 +1355,6 @@ function saveManualCrushResults() {
 }
 
 // --- Project Analytics & Completed ledger rendering ---
-// Bulletproof safety fallbacks implemented to prevent crashes on undefined casting entities!
 function renderAnalyticsDashboard() {
   const container = document.getElementById("svg-chart-container");
   if (!container) return;
@@ -1148,7 +1442,6 @@ function renderMixConformityList() {
   });
 }
 
-// Fully bulletproofed list renderer supporting dynamic new manual entries securely
 function renderCompletedLedger() {
   const tbody = document.getElementById("completed-ledger-body");
   if (!tbody) return;
@@ -1165,7 +1458,6 @@ function renderCompletedLedger() {
     const tr = document.createElement("tr");
     tr.style.cursor = "pointer";
     
-    // Safely verify and format numeric outputs to prevent DOM rendering execution crashes
     const load7d = c.failureLoad7d ? c.failureLoad7d.toFixed(1) : '---';
     const load28d = c.failureLoad28d ? c.failureLoad28d.toFixed(1) : '---';
     const strength28d = c.strength28d ? c.strength28d.toFixed(2) : '---';
@@ -1236,7 +1528,6 @@ function openCertificateModal(id) {
   document.getElementById("cert-dims").textContent = `${cube.dimension}x${cube.dimension}x${cube.dimension} מ"מ`;
   document.getElementById("cert-cement").textContent = cube.cementType || '---';
   
-  // Comparative columns load safely
   const load7 = cube.failureLoad7d ? cube.failureLoad7d.toFixed(1) + " kN" : '---';
   const str7 = cube.strength7d ? cube.strength7d.toFixed(2) + " MPa" : '---';
   const load28 = cube.failureLoad28d ? cube.failureLoad28d.toFixed(1) + " kN" : '---';
@@ -1272,7 +1563,6 @@ function openCertificateModal(id) {
   }
 }
 
-// --- Close Modal ---
 function closeCertificateModal() {
   const modal = document.getElementById("cert-modal");
   if (modal) {
@@ -1335,4 +1625,8 @@ function exportReportsCSV() {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+}
+
+function saveState() {
+  localStorage.setItem("concretus_is_cubes", JSON.stringify(cubes));
 }

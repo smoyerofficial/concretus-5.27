@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -6,12 +7,52 @@
   <title>Concretus | מערכת דיגיטלית לנטילה ובדיקת בטון</title>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Core Design Sheet -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <div class="app-container">
+  <!-- --- Auth Overlay Screen --- -->
+  <div class="auth-overlay active-modal" id="auth-panel">
+    <div class="auth-card" dir="rtl">
+      <div class="logo-container" style="justify-content: center; margin-bottom: 20px;">
+        <div class="logo-icon"><i class="fa-solid fa-cubes"></i></div>
+        <div class="logo-text">CONCRE<span class="logo-sub">TUS</span></div>
+      </div>
+      <h2 id="auth-title" style="text-align: center; margin-bottom: 8px;">כניסה למערכת</h2>
+      <p id="auth-subtitle" style="text-align: center; font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">אנא הזן את פרטי הגישה שלך כדי להמשיך</p>
+      
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+        <div class="form-group">
+          <label for="auth-email">דואר אלקטרוני</label>
+          <input type="email" id="auth-email" required placeholder="name@company.com">
+        </div>
+        <div class="form-group">
+          <label for="auth-password">סיסמה</label>
+          <input type="password" id="auth-password" required placeholder="••••••••">
+        </div>
+        
+        <!-- Registration Fields (Initially Hidden) -->
+        <div id="register-only-fields" class="hidden">
+          <div class="form-group">
+            <label for="auth-fullname">שם מלא</label>
+            <input type="text" id="auth-fullname" placeholder="ישראל ישראלי">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="btn-auth-submit" style="margin-top: 12px;">התחבר</button>
+      </form>
+
+      <div class="auth-toggle-link" onclick="toggleAuthMode()">
+        <span id="auth-toggle-text">אין לך חשבון? הרשם כאן</span>
+      </div>
+      <div id="auth-feedback" class="feedback"></div>
+    </div>
+  </div>
+
+  <div class="app-container hidden" id="app-wrapper">
     
     <!-- --- Sidebar Navigation --- -->
     <aside class="sidebar">
@@ -20,15 +61,20 @@
         <div class="logo-text">CONCRE<span class="logo-sub">TUS</span></div>
       </div>
       
-      <nav>
-        <div class="nav-group-title">פעולות שטח (Field)</div>
-        <ul class="nav-list">
+      <nav dir="rtl">
+        <!-- Manager Only Section Header -->
+        <div class="nav-group-title manager-only">ניהול ומעקב (Manager)</div>
+        <ul class="nav-list manager-only">
           <li>
             <div class="nav-item active" data-view="dashboard-view" id="nav-dashboard">
               <i class="fa-solid fa-chart-line"></i>
               <span>לוח בקרה (Dashboard)</span>
             </div>
           </li>
+        </ul>
+
+        <div class="nav-group-title">פעולות שטח (Field)</div>
+        <ul class="nav-list">
           <li>
             <div class="nav-item" data-view="casting-view" id="nav-casting">
               <i class="fa-solid fa-compass-drafting"></i>
@@ -43,8 +89,9 @@
           </li>
         </ul>
         
-        <div class="nav-group-title">מעבדה (Laboratory)</div>
-        <ul class="nav-list">
+        <!-- Manager Only Lab Navigation -->
+        <div class="nav-group-title manager-only">מעבדה (Laboratory)</div>
+        <ul class="nav-list manager-only">
           <li>
             <div class="nav-item" data-view="lab-view" id="nav-lab">
               <i class="fa-solid fa-flask-vial"></i>
@@ -61,11 +108,14 @@
       </nav>
       
       <div class="sidebar-footer">
-        <div class="user-avatar">FT</div>
+        <div class="user-avatar" id="current-user-avatar">--</div>
         <div class="user-info">
-          <span class="user-name">משה לוי</span>
-          <span class="user-role">דוגם מוסמך</span>
+          <span class="user-name" id="current-user-name">טוען...</span>
+          <span class="user-role" id="current-user-role">---</span>
         </div>
+        <button onclick="handleSignOut()" class="action-icon-btn" style="margin-right: auto; background: transparent;" title="התנתק">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
       </div>
     </aside>
 

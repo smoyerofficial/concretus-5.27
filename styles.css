@@ -1877,3 +1877,51 @@ body {
     grid-template-columns: 1fr;
   }
 }
+/* --- Supabase Auth UI Styles --- */
+.auth-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-main);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.auth-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  max-width: 420px;
+  width: 100%;
+  padding: 32px;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+}
+
+.auth-toggle-link {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--safety-orange);
+  cursor: pointer;
+  font-weight: 600;
+  transition: color var(--transition-fast);
+}
+
+.auth-toggle-link:hover {
+  color: var(--safety-yellow);
+}
+
+/* Dynamic CSS Role-Based Visibility classes */
+.manager-only {
+  display: block;
+}
+
+.app-container.role-field_worker .manager-only {
+  display: none !important;
+}
