@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Concretus | מערכת דיגיטלית לנטילה ובדיקת בטון</title>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Core Design Sheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- --- Sidebar Navigation --- -->
+    <aside class="sidebar">
+      <div class="logo-container">
+        <div class="logo-icon"><i class="fa-solid fa-cubes"></i></div>
+        <div class="logo-text">CONCRE<span class="logo-sub">TUS</span></div>
+      </div>
+      
+      <nav>
+        <div class="nav-group-title">פעולות שטח (Field)</div>
+        <ul class="nav-list">
+          <li>
+            <div class="nav-item active" data-view="dashboard-view" id="nav-dashboard">
+              <i class="fa-solid fa-chart-line"></i>
+              <span>לוח בקרה (Dashboard)</span>
+            </div>
+          </li>
+          <li>
+            <div class="nav-item" data-view="casting-view" id="nav-casting">
+              <i class="fa-solid fa-compass-drafting"></i>
+              <span>טופס נטילה דיגיטלי</span>
+            </div>
+          </li>
+          <li>
+            <div class="nav-item" data-view="dispatch-view" id="nav-dispatch">
+              <i class="fa-solid fa-truck-ramp-box"></i>
+              <span>ספר נטילות ומשלוחים</span>
+            </div>
+          </li>
+        </ul>
+        
+        <div class="nav-group-title">מעבדה (Laboratory)</div>
+        <ul class="nav-list">
+          <li>
+            <div class="nav-item" data-view="lab-view" id="nav-lab">
+              <i class="fa-solid fa-flask-vial"></i>
+              <span>חדר בדיקות ולחיצה</span>
+            </div>
+          </li>
+          <li>
+            <div class="nav-item" data-view="reports-view" id="nav-reports">
+              <i class="fa-solid fa-clipboard-list"></i>
+              <span>תעודות ואישורי בדיקה</span>
+            </div>
+          </li>
+        </ul>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="user-avatar">FT</div>
+        <div class="user-info">
+          <span class="user-name">משה לוי</span>
+          <span class="user-role">דוגם מוסמך</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- --- Main Content Container --- -->
+    <main class="main-content">
+      
+      <!-- --- Header Bar --- -->
+      <header class="app-header">
+        <div class="view-title-container">
+          <h1 id="header-view-title">לוח בקרה כללי</h1>
+          <p id="header-view-desc">ניטור מדדים, יציקות פעילות, והתראות על בדיקות לחיצה ממתינות.</p>
+        </div>
+        <div class="header-actions">
+          <div class="sync-badge" id="sync-status">
+            <span class="sync-pulse"></span>
+            <span id="sync-text">מחובר לענן מעבדה</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- --- View 1: Dashboard Panel --- -->
+      <section class="view-panel active-view" id="dashboard-view">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fa-solid fa-cube"></i></div>
+            <div class="stat-value" id="stat-total-cast">0</div>
+            <div class="stat-label">סך הכל נטילות רשומות</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fa-solid fa-truck-fast"></i></div>
+            <div class="stat-value" id="stat-transit">0</div>
+            <div class="stat-label">בדרך למעבדה (In Transit)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="stat-value" id="stat-compliance">100%</div>
+            <div class="stat-label">אחוז תקינות לחיצה (Pass Rate)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div class="stat-value" id="stat-failed">0</div>
+            <div class="stat-label">בדיקות שנכשלו (Non-Compliant)</div>
+          </div>
+        </div>
+
+        <div class="dashboard-layout">
+          <!-- Recent Cube Casts -->
+          <div class="dashboard-section">
+            <div class="section-header">
+              <h2 class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> נטילות אחרונות וסטטוס זרימה</h2>
+              <button class="btn btn-secondary" style="width: auto; padding: 8px 16px; font-size: 13px;" onclick="switchActiveView('dispatch-view')">לספר המשלוחים</button>
+            </div>
+            <div class="cube-list-compact" id="dashboard-cube-list">
+              <!-- Rendered Dynamically via JS -->
+            </div>
+          </div>
+
+          <!-- Lab Notifications Panel -->
+          <div class="dashboard-section" style="display: flex; flex-direction: column; gap: 24px;">
+            <h2 class="section-title"><i class="fa-solid fa-triangle-exclamation"></i> התראות מערכת</h2>
+            <div class="stat-card" style="background: rgba(255, 107, 0, 0.05); border: 1px solid rgba(255, 107, 0, 0.2); padding: 18px;">
+              <h4 style="color: var(--safety-orange); margin-bottom: 6px; font-size: 14px;"><i class="fa-solid fa-bell"></i> בדיקות לחיצה ממתינות</h4>
+              <p style="font-size: 12px; color: var(--text-secondary);">בצע קליטה והזן תוצאות בדיקת שבר (עבור 7 ימים ו-28 ימים) עבור המדגמים שהגיעו.</p>
+              <button class="btn btn-primary" style="margin-top: 14px; padding: 8px 12px; font-size: 12px; width: 100%;" onclick="switchActiveView('lab-view')">מעבר להזנת תוצאות מעבדה</button>
+            </div>
+
+            <div class="stat-card" style="background: rgba(255, 193, 7, 0.05); border: 1px solid rgba(255, 193, 7, 0.2); padding: 18px;">
+              <h4 style="color: var(--safety-yellow); margin-bottom: 6px; font-size: 14px;"><i class="fa-solid fa-truck-moving"></i> משלוחים ממתינים לקליטה</h4>
+              <p style="font-size: 12px; color: var(--text-secondary);">קוביות נשלחו מהשטח ונמצאות כרגע בסטטוס "בדרך למעבדה". סמן קבלה ברגע שהשליח מגיע למעבדה.</p>
+              <button class="btn btn-secondary" style="margin-top: 14px; padding: 8px 12px; font-size: 12px; width: 100%; border-color: rgba(255, 193, 7, 0.3);" onclick="switchActiveView('lab-view')">לקליטת משלוח</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- --- View 2: STEP-BY-STEP CUBE CASTING FORM PANEL --- -->
+      <section class="view-panel" id="casting-view">
+        <div class="casting-form-grid">
+          
+          <div class="form-card">
+            <!-- STEP 1: STICKER VERIFICATION BLOCK -->
+            <div class="sticker-verify-card" id="step-sticker">
+                <h2 style="font-family: var(--font-tech); color: var(--safety-orange); margin-bottom: 8px;"><i class="fa-solid fa-barcode"></i> אימות דף מדבקות נטילה</h2>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">לפני מילוי הפרטים, הקלד את מספר המדבקה (5 ספרות) להצמדה על קוביות הבדיקה.</p>
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                    <input type="tel" 
+                           inputmode="numeric" 
+                           pattern="[0-9]*" 
+                           maxlength="5" 
+                           id="sticker-number" 
+                           class="sticker-input-field" 
+                           placeholder="00000"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    <button type="button" class="btn btn-primary" id="btn-verify" onclick="verifySticker()">אמת והמשך למילוי טופס</button>
+                </div>
+                <div id="sticker-feedback" class="feedback"></div>
+            </div>
+
+            <!-- STEP 2: COMPLETE COLLAPSIBLE FORM (Hidden until Sticker Verified) -->
+            <form id="casting-form" class="hidden" onsubmit="handleCastSubmission(event)">
+              
+              <!-- Section 1: Admin & Order details -->
+              <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                  <span>1. פרטי הזמנה ומנהלה</span>
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="accordion-content">
+                  <div class="form-group-row">
+                    <div class="form-group">
+                      <label for="project-no">מספר פרויקט / הסכם</label>
+                      <input type="text" id="project-no" placeholder="הקלד מספר פרויקט" required value="707303/1">
+                    </div>
+                    <div class="form-group">
+                      <label for="order-no">הזמנה מספר</label>
+                      <input type="text" id="order-no" placeholder="הקלד מספר הזמנה" required value="95205419">
+                    </div>
+                  </div>
+
+                  <div class="form-group-row">
+                    <div class="form-group">
+                      <label for="casting-date">תאריך היציקה</label>
+                      <input type="date" id="casting-date" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="client-name">שם המזמין ומענו</label>
+                      <input type="text" id="client-name" placeholder="שם מזמין הבדיקה" required value="תעשיות רדימיקס בע״מ">
+                    </div>
+                  </div>
+
+                  <div class="form-group-row">
+                    <div class="form-group">
+                      <label for="contractor">הקבלן המבצע</label>
+                      <input type="text" id="contractor" placeholder="חברת הקבלן" required value="סולל בונה בע״מ">
+                    </div>
+                    <div class="form-group">
+                      <label for="inspector">שם המפקח</label>
+                      <input type="text" id="inspector" placeholder="שם המפקח באתר" required value="אינג' אברהם כהן">
+                    </div>
+                  </div>
+
+                  <div class="form-group-row">
+                    <div class="form-group">
+                      <label for="site-address">כתובת האתר</label>
+                      <input type="text" id="site-address" placeholder="כתובת מדויקת של האתר" required value="מרחב דרום באר שבע">
+                    </div>
+                    <div class="form-group">
+                      <label for="building-desc">תיאור המבנה</label>
+                      <input type="text" id="building-desc" placeholder="תיאור המבנה" required value="בניין משרדים גובה 5 קומות">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 2: Element details -->
+              <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                  <span>2. פרטי האלמנט והיציקה</span>
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="accordion-content">
+                  <div class="form-group">
+                    <label>האלמנט הנוצק</label>
+                    <div class="btn-group" id="element-group">
+                      <div class="btn-option" onclick="selectOption('element-group', this, 'קיר')">קיר</div>
+                      <div class="btn-option" onclick="selectOption('element-group', this, 'עמוד')">עמוד</div>
+                      <div class="btn-option" onclick="selectOption('element-group', this, 'תקרה')">תקרה</div>
+                      <div class="btn-option" onclick="selectOption('element-group', this, 'יסודות')">יסודות</div>
+                      <div class="btn-option" onclick="selectOption('element-group', this, 'רצפה')">רצפה</div>
+                      <div class="btn-option" onclick="selectOption('element-group', this, 'אחר')">אחר</div>
+                    </div>
+                    <input type="hidden" id="selected-element" value="" required>
+                  </div>
+
+                  <div class="form-group">
+                    <label>נפח יציקה כולל (במ"ק)</label>
+                    <div class="adjuster-container">
+                      <button type="button" class="adj-btn" onclick="adjustValue('volume', -1)">-</button>
+                      <div class="adj-val" id="volume-display">8</div>
+                      <button type="button" class="adj-btn" onclick="adjustValue('volume', 1)">+</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 3: Concrete details -->
+              <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                  <span>3. פרטי הבטון (מתעודת המשלוח)</span>
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="accordion-content">
+                  <div class="form-group-row">
+                    <div class="form-group">
+                      <label for="supplier">ספק הבטון / המפעל</label>
+                      <select id="supplier" required>
+                        <option value="">בחר ספק בטון...</option>
+                        <option value="רדימיקס" selected>רדימיקס</option>
+                        <option value="הנסון">הנסון</option>
+                        <option value="שפיר">שפיר</option>
+                        <option value="אולטרה-בטון">אולטרה-בטון</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>האם ספק מוסמך?</label>
+                      <div class="btn-group" id="certified-group">
+                        <div class="btn-option" onclick="selectOption('certified-group', this, 'כן')">כן</div>
+                        <div class="btn-option" onclick="selectOption('certified-group', this, 'לא')">לא</div>
+                      </div>
+                      <input type="hidden" id="is-certified" value="" required>
+                    </div>
+                  </div>
+
+                  <div class="form-group-row">
+                    <div class="form-group">
+                      <label for="concrete-type">סוג הבטון</label>
+                      <select id="concrete-type" required>
+                        <option value="">בחר סוג בטון...</option>
+                        <option value="ב-15">ב-15</option>
+                        <option value="ב-20">ב-20</option>
+                        <option value="ב-25">ב-25</option>
+                        <option value="ב-30" selected>ב-30 (סטנדרטי)</option>
+                        <option value="ב-40">ב-40</option>
+                        <option value="ב-50">ב-50</option>
+                        <option value="ב-60">ב-60</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label for="cement-type">סוג הצמנט</label>
+                      <input type="text" id="cement-type" placeholder="הקלד סוג צמנט" required value="צ.פ">
+                    </div>
+                  </div>
+
+                  <div class="form-group-row">
+                    <div class="form-group">
+                      <label for="aggregate-size">גודל אגרגט</label>
+                      <select id="aggregate-size" required>
+                        <option value="">בחר גודל אגרגט...</option>
+                        <option value="חול: עד 4.75 מ״מ">חול: עד 4.75 מ״מ</option>
+                        <option value="סומסום: כ-9.5 מ״מ">סומסום: כ-9.5 מ״מ</option>
+                        <option value="עדש: כ-14 מ״מ">עדש: כ-14 מ״מ</option>
+                        <option value="פוליה קטנה: כ-19 מ״מ" selected>פוליה קטנה: כ-19 מ״מ</option>
+                        <option value="פוליה גדולה / רגילה: כ-25 מ״מ">פוליה גדולה / רגילה: כ-25 מ״מ</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>דרגת חשיפה</label>
+                      <div class="adjuster-container">
+                        <button type="button" class="adj-btn" onclick="adjustValue('exposure', -1)">-</button>
+                        <div class="adj-val" id="exposure-display">2</div>
+                        <button type="button" class="adj-btn" onclick="adjustValue('exposure', 1)">+</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>אפיון הבטון</label>
+                    <div class="checkbox-grid">
+                      <div class="checkbox-tile" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="charac" value="רגיל">
+                        <span>רגיל</span>
+                      </div>
+                      <div class="checkbox-tile" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="charac" value="משאבה">
+                        <span>משאבה</span>
+                      </div>
+                      <div class="checkbox-tile" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="charac" value="ללא פוליה">
+                        <span>ללא פוליה</span>
+                      </div>
+                      <div class="checkbox-tile" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="charac" value="גלוי">
+                        <span>גלוי</span>
+                      </div>
+                      <div class="checkbox-tile" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="charac" value="דחוס">
+                        <span>דחוס</span>
+                      </div>
+                      <div class="checkbox-tile" onclick="toggleCheckbox(this)">
+                        <input type="checkbox" name="charac" value="בנטונייט">
+                        <span>בנטונייט</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 4: Field Sampling Details -->
+              <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                  <span>4. פרטי הדגימה והבדיקה בשטח</span>
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="accordion-content">
+                  <div class="form-group-row">
+                    <div class="form-group">
+                      <label>נדגם מ-</label>
+                      <div class="btn-group" id="sampled-from-group">
+                        <div class="btn-option" onclick="selectOption('sampled-from-group', this, 'הערבל')">הערבל</div>
+                        <div class="btn-option" onclick="selectOption('sampled-from-group', this, 'משאבה')">משאבה</div>
+                        <div class="btn-option" onclick="selectOption('sampled-from-group', this, 'מיכל עברה')">מיכל עברה</div>
+                      </div>
+                      <input type="hidden" id="selected-sampled-from" value="" required>
+                    </div>
+                    <div class="form-group">
+                      <label>סומך בטון (Slump)</label>
+                      <div class="adjuster-container">
+                        <button type="button" class="adj-btn" onclick="adjustValue('slump', -1)">-</button>
+                        <div class="adj-val" id="slump-display">8</div>
+                        <button type="button" class="adj-btn" onclick="adjustValue('slump', 1)">+</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group-row">
+                    <div class="form-group">
+                      <label for="delivery-note">מספר תעודת משלוח</label>
+                      <input type="tel" inputmode="numeric" id="delivery-note" placeholder="הקלד מספר תעודה" required value="95205419">
+                    </div>
+                    <div class="form-group">
+                      <label for="mixer-no">מספר ערבל (משאית)</label>
+                      <input type="text" id="mixer-no" placeholder="הזן מספר ערבל" required value="ערבל 349">
+                    </div>
+                  </div>
+
+                  <div class="form-group-row">
+                    <div class="form-group">
+                      <label for="batch-no">מספר אצווה (Batch)</label>
+                      <input type="text" id="batch-no" placeholder="הזן מספר אצווה" required value="1">
+                    </div>
+                    <div class="form-group">
+                      <label for="sampler-name">שם הדוגם שביצע</label>
+                      <input type="text" id="sampler-name" placeholder="שם הדוגם שביצע" required value="משה לוי">
+                    </div>
+                  </div>
+
+                  <div class="form-group-row">
+                    <div class="form-group">
+                      <label>שעת דגימה (משעה - עד שעה)</label>
+                      <div style="display: flex; gap: 10px;">
+                        <input type="time" id="time-start" class="form-control" required value="13:00">
+                        <input type="time" id="time-end" class="form-control" required value="13:30">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>מספר קוביות שנלקחו (מדגמים)</label>
+                      <div class="adjuster-container">
+                        <button type="button" class="adj-btn" onclick="adjustValue('samples', -1)">-</button>
+                        <div class="adj-val" id="samples-display">6</div>
+                        <button type="button" class="adj-btn" onclick="adjustValue('samples', 1)">+</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Specimen Dimensions Selection -->
+                  <div class="form-group">
+                    <label>מידות תבנית קוביית הבטון</label>
+                    <div class="radio-group">
+                      <div class="radio-tile-label active-tile" onclick="selectDimensionTile(150, this)">
+                        <input type="radio" name="cube-dimension" value="150" checked>
+                        <i class="fa-solid fa-cube" style="font-size: 26px;"></i>
+                        <span class="radio-title">150 מ"מ קובייה סטנדרטית</span>
+                        <span class="radio-desc">שטח פנים: 22,500 ממ"ר</span>
+                      </div>
+                      <div class="radio-tile-label" onclick="selectDimensionTile(100, this)">
+                        <input type="radio" name="cube-dimension" value="100">
+                        <i class="fa-solid fa-cube" style="font-size: 18px; margin-top: 4px; margin-bottom: 10px;"></i>
+                        <span class="radio-title">100 מ"מ קובייה מוקטנת</span>
+                        <span class="radio-desc">שטח פנים: 10,000 ממ"ר</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 5: Approvals, Signatures and Remarks -->
+              <div class="accordion" id="accordion-section-5">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                  <span>5. אישורים, חתימות והערות שטח</span>
+                  <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="accordion-content">
+                  <div class="form-group">
+                    <label for="remarks">הערות מיוחדות מהשטח</label>
+                    <textarea id="remarks" rows="3" placeholder="הוספת מים לבקשת אתר, עיכובים בפריקה וכו'..."></textarea>
+                  </div>
+
+                  <div class="form-group-row">
+                    <!-- Signature 1 -->
+                    <div class="form-group">
+                      <label>חתימת דוגם המעבדה</label>
+                      <div class="signature-box" id="sig-pad-container-1">
+                        <button type="button" class="signature-clear-btn" onclick="clearSignatureCanvas(1)">נקה</button>
+                        <span class="signature-placeholder" id="sig-text-1">חתום כאן עם האצבע</span>
+                        <canvas class="signature-canvas" id="canvas-1"></canvas>
+                      </div>
+                    </div>
+                    <!-- Signature 2 -->
+                    <div class="form-group">
+                      <label>חתימת אחראי באתר / נציג המזמין</label>
+                      <div class="signature-box" id="sig-pad-container-2">
+                        <button type="button" class="signature-clear-btn" onclick="clearSignatureCanvas(2)">נקה</button>
+                        <span class="signature-placeholder" id="sig-text-2">חתום כאן עם האצבע</span>
+                        <canvas class="signature-canvas" id="canvas-2"></canvas>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary" style="margin-top: 12px;"><i class="fa-solid fa-plus-circle"></i> השלם נטילת מדגם ושמור טיוטה</button>
+                </div>
+              </div>
+
+            </form>
+          </div>
+
+          <!-- Side Information Cards -->
+          <div class="active-castings-card">
+            <h3><i class="fa-solid fa-circle-info"></i> פרוטוקול נטילה תקני</h3>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.6;">
+              בהתאם לדרישות תקן ת"י 26 ות"י 118, יש ליטול מדגמים ישירות מהערבל או המשאבה, לבדוק סומך (שקיעה) ולסמן את הקוביות באופן חד-ערכי התואם את תעודות המשלוח.
+            </p>
+            <hr style="border-color: var(--border-subtle); margin-bottom: 20px;">
+            <h3><i class="fa-solid fa-list-check"></i> נטילות פעילות הממתינות למשלוח</h3>
+            <div id="side-pending-dispatch" style="display: flex; flex-direction: column; gap: 12px;">
+              <!-- Rendered via Javascript -->
+            </div>
+          </div>
+          
+        </div>
+      </section>
+
+      <!-- --- View 3: Dispatch & Manifest Log Tab --- -->
+      <section class="view-panel" id="dispatch-view">
+        <div class="dispatch-layout">
+          
+          <!-- Master Castings Ledger -->
+          <div class="table-container">
+            <div class="table-header-row">
+              <h2>פנקס נטילות שטח פעיל</h2>
+              <span style="font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono);" id="ledger-count-display">Showing 0 items</span>
+            </div>
+            
+            <table class="concrete-table">
+              <thead>
+                <tr>
+                  <th>מספר מדבקה / נטילה</th>
+                  <th>שם המזמין (לקוח)</th>
+                  <th>שם הדוגם</th>
+                  <th>סוג בטון</th>
+                  <th>סומך</th>
+                  <th>תאריך יציקה</th>
+                  <th>סטטוס</th>
+                  <th style="text-align: left;">פעולה</th>
+                </tr>
+              </thead>
+              <tbody id="ledger-table-body">
+                <!-- Rendered Dynamically via JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Shipping Manifest Sheet -->
+          <div class="manifest-panel">
+            <h2 style="font-family: var(--font-tech); font-size: 20px; margin-bottom: 8px;">תעודת משלוח ומניפסט למעבדה</h2>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 24px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
+              בדוק את פרטי הנטילה, הפק קוד מעקב מהיר (QR) ושלח את המדגמים הפיזיים למעבדה המרכזית.
+            </p>
+            
+            <!-- Empty state -->
+            <div class="manifest-empty" id="manifest-empty-view">
+              <i class="fa-solid fa-barcode"></i>
+              <p>בחר מדגם נטילה מהפנקס משמאל כדי להציג את תעודת המשלוח וקוד המעקב</p>
+            </div>
+
+            <!-- Filled Sheet -->
+            <div id="manifest-filled-view" style="display: none;">
+              <div class="manifest-sheet" id="print-manifest-area">
+                <div class="manifest-logo">סיסטם מעבדות בטון</div>
+                <div class="manifest-header">
+                  <div class="manifest-header-left" style="text-align: left;">
+                    <h3 id="waybill-project">פרויקט הדרום</h3>
+                    <p id="waybill-id">CUBE-2026-0091</p>
+                  </div>
+                  <!-- Barcode / QR Box -->
+                  <div class="manifest-qr-box">
+                    <canvas id="manifest-qr-canvas" width="60" height="60"></canvas>
+                  </div>
+                </div>
+
+                <div class="manifest-grid" dir="rtl">
+                  <div class="manifest-item">
+                    <span class="manifest-label">סוג בטון</span>
+                    <span class="manifest-val" id="waybill-mix">ב-30</span>
+                  </div>
+                  <div class="manifest-item">
+                    <span class="manifest-label">סומך בטון</span>
+                    <span class="manifest-val" id="waybill-slump">8</span>
+                  </div>
+                  <div class="manifest-item">
+                    <span class="manifest-label">אלמנט נוצק</span>
+                    <span class="manifest-val" id="waybill-location">קיר</span>
+                  </div>
+                  <div class="manifest-item">
+                    <span class="manifest-label">תאריך יציקה</span>
+                    <span class="manifest-val" id="waybill-cast-date">2026-05-25</span>
+                  </div>
+                  <div class="manifest-item">
+                    <span class="manifest-label">דרגת חשיפה</span>
+                    <span class="manifest-val" id="waybill-exposure">2</span>
+                  </div>
+                  <div class="manifest-item">
+                    <span class="manifest-label">מידות תבנית</span>
+                    <span class="manifest-val" id="waybill-dims">150x150x150 מ"מ</span>
+                  </div>
+                </div>
+
+                <div class="manifest-sig-box">
+                  <div class="manifest-item">
+                    <span class="manifest-label" style="margin-bottom: 2px;">דוגם המעבדה</span>
+                    <span class="manifest-val" style="font-size: 11px;" id="waybill-sampler-name">משה לוי</span>
+                  </div>
+                  <img class="manifest-sig-img" id="waybill-sig-image" src="" alt="חתימת דוגם">
+                </div>
+              </div>
+
+              <!-- Dispatch Action buttons -->
+              <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 24px;">
+                <button class="btn btn-primary" id="btn-dispatch-waybill" onclick="dispatchActiveCube()"><i class="fa-solid fa-paper-plane"></i> שלח למעבדה באופן דיגיטלי</button>
+                <button class="btn btn-secondary" onclick="printWaybill()"><i class="fa-solid fa-print"></i> הדפס מדבקת מעקב QR</button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- --- View 4: Lab Dashboard & MANUAL Testing Entry --- -->
+      <section class="view-panel" id="lab-view">
+        <div class="lab-layout">
+          
+          <!-- Incoming Shipments & Receiving Queue -->
+          <div class="queue-card">
+            <h2 style="font-family: var(--font-tech); font-size: 20px; margin-bottom: 4px;"><i class="fa-solid fa-truck-moving"></i> תור קבלת משלוחי קוביות</h2>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 20px;">בדוק קוביות שהגיעו משטח האתר, אשר את קבלתן והטען אותן למערכת הזנת נתוני הלחיצה.</p>
+            
+            <div class="search-box-container">
+              <i class="fa-solid fa-magnifying-glass" style="right: 16px; left: auto;"></i>
+              <input type="text" class="search-input" id="lab-queue-search" style="padding: 12px 48px 12px 16px;" placeholder="חפש לפי מספר מדבקה..." oninput="filterLabQueue(this.value)">
+            </div>
+
+            <div class="queue-list" id="lab-queue-list">
+              <!-- Rendered Dynamically via JS -->
+            </div>
+          </div>
+
+          <!-- Manual Compressive Testing Input Panel -->
+          <div class="tester-card">
+            <h2 style="font-family: var(--font-tech); font-size: 20px; margin-bottom: 4px;"><i class="fa-solid fa-file-signature"></i> הזנת נתוני בדיקת שבר מנואלית</h2>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 24px;">הזן את עומסי השבר (kN) שהתקבלו בפועל ממכבש הלחיצה עבור 7 ימים ו-28 ימים.</p>
+            
+            <div class="control-console">
+              <div class="telemetry-grid" style="margin-bottom: 20px;">
+                <div class="telemetry-screen">
+                  <span class="telemetry-label">קובייה בבדיקה</span>
+                  <span class="telemetry-value" id="telem-specimen-id" style="font-size: 18px; line-height: 2;">טרם נבחרה קובייה</span>
+                </div>
+                <div class="telemetry-screen">
+                  <span class="telemetry-label">סוג בטון נדרש</span>
+                  <span class="telemetry-value" id="telem-mix-grade" style="font-size: 18px; line-height: 2;">N/A</span>
+                </div>
+              </div>
+
+              <!-- Manual Inputs Form -->
+              <div id="manual-crush-inputs" style="display: none; background: rgba(255,255,255,0.02); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-bottom: 20px;">
+                <div class="form-group-row">
+                  <div class="form-group">
+                    <label for="lab-load-7d">עומס שבר בגיל 7 ימים (kN)</label>
+                    <input type="number" step="0.1" id="lab-load-7d" class="form-control" placeholder="לדוגמה: 745.0" oninput="calculateOnTheFlyStrength('7d')">
+                    <span id="strength-7d-calc" style="font-size: 12px; color: var(--safety-orange); font-weight: bold; margin-top: 4px;">חוזק: 0.00 MPa</span>
+                  </div>
+                  <div class="form-group">
+                    <label for="lab-load-28d">עומס שבר בגיל 28 יום (kN)</label>
+                    <input type="number" step="0.1" id="lab-load-28d" class="form-control" placeholder="לדוגמה: 952.0" oninput="calculateOnTheFlyStrength('28d')">
+                    <span id="strength-28d-calc" style="font-size: 12px; color: var(--success); font-weight: bold; margin-top: 4px;">חוזק: 0.00 MPa</span>
+                  </div>
+                </div>
+                
+                <button type="button" class="btn btn-primary" id="btn-save-results" style="margin-top: 10px;" onclick="saveManualCrushResults()"><i class="fa-solid fa-floppy-disk"></i> שמור תוצאות בדיקה והמשך</button>
+              </div>
+              
+              <div class="stat-card" style="padding: 16px; border-style: dashed; background-color: transparent;" id="simulator-status-panel">
+                <p style="font-size: 12px; color: var(--text-secondary); text-align: center; margin: 0;">
+                  <i class="fa-solid fa-circle-question"></i> בחר מדגם פעיל מהתור משמאל על מנת לפתוח את שדות הזנת הנתונים.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- --- View 5: Project Analytics & Reports Tab --- -->
+      <section class="view-panel" id="reports-view">
+        
+        <!-- Search Dashboard Card widget (Prominent Customer Search bar) -->
+        <div class="card" style="margin-bottom: 24px; border: 1px solid var(--safety-orange);">
+          <h3 style="font-family: var(--font-tech); margin-bottom: 12px; font-size: 18px;"><i class="fa-solid fa-magnifying-glass text-safety"></i> איתור מהיר של תעודות בדיקה לפי לקוח / פרויקט / מדבקה</h3>
+          <div class="search-box-container" style="margin-bottom: 0;">
+            <i class="fa-solid fa-magnifying-glass" style="right: 16px; left: auto; color: var(--safety-orange); top: 50%;"></i>
+            <input type="text" class="search-input" id="cert-client-search" style="padding: 14px 48px 14px 16px; font-size: 15px;" placeholder="הקלד שם לקוח / מזמין, מספר פרויקט או מספר מדבקה לסינון מהיר..." oninput="filterCertificatesByClient(this.value)">
+          </div>
+        </div>
+
+        <div class="analytics-grid">
+          
+          <!-- Compressive Strength distribution bar chart -->
+          <div class="chart-card">
+            <h2 style="font-family: var(--font-tech); font-size: 20px; margin-bottom: 8px;"><i class="fa-solid fa-chart-simple"></i> התפלגות חוזק לחיצה (מדגמי 28 יום)</h2>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 24px;">השוואת חוזק המעיכה בפועל (במגפ"ס) מול דרישות התקן לכל סוג בטון.</p>
+            
+            <div class="chart-wrapper" id="svg-chart-container">
+              <!-- Rendered via JS -->
+            </div>
+            
+            <!-- Horizontal Chart Legend -->
+            <div style="display: flex; justify-content: center; gap: 32px; margin-top: 16px; font-size: 12px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 2px; background: linear-gradient(to top, var(--safety-orange), #FF8F00);"></span>
+                <span>חוזק לחיצה שהושג (MPa)</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="display: inline-block; width: 32px; height: 2px; background-color: var(--success); border-top: 2px dashed var(--success);"></span>
+                <span>סף חוזק נדרש בתקן ת"י 118</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Concrete Mix Target Conformity panel -->
+          <div class="chart-card" style="display: flex; flex-direction: column; gap: 24px;">
+            <h2 style="font-family: var(--font-tech); font-size: 20px; margin-bottom: 4px;"><i class="fa-solid fa-microchip"></i> אחוז התאמה ותקינות לפי סוג בטון</h2>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">מדד תקינות מצטבר המחושב אוטומטית מכלל המדגמים שנבדקו.</p>
+            
+            <div class="mix-compliance-list" id="compliance-progress-list">
+              <!-- Rendered via JavaScript -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Ledger -->
+        <div class="table-container">
+          <div class="table-header-row">
+            <h2>תעודות בדיקה ואישור - מאגר בטון סופי</h2>
+            <div>
+              <button class="btn btn-secondary" style="width: auto; padding: 8px 16px; font-size: 13px;" onclick="exportReportsCSV()"><i class="fa-solid fa-file-csv"></i> ייצא לאקסל (CSV)</button>
+            </div>
+          </div>
+          
+          <table class="concrete-table">
+            <thead>
+              <tr>
+                <th>תעודת בדיקה מס׳</th>
+                <th>מספר מדבקה / נטילה</th>
+                <th>שם המזמין (לקוח)</th>
+                <th>מיקום היציקה</th>
+                <th>סוג הבטון</th>
+                <th>סומך</th>
+                <th>שבר 7 ימים (kN)</th>
+                <th>שבר 28 ימים (kN)</th>
+                <th>חוזק 28 יום (MPa)</th>
+                <th>התאמה לתקן</th>
+                <th style="text-align: left;">תעודה</th>
+              </tr>
+            </thead>
+            <tbody id="completed-ledger-body">
+              <!-- Rendered Dynamically via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- --- Compressive Strength Test Certificate Modal --- -->
+  <div class="certificate-modal" id="cert-modal">
+    <div class="certificate-card" dir="rtl">
+      <button class="cert-close-btn" onclick="closeCertificateModal()"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div class="certificate-sheet" id="print-cert-area">
+        <h2>תעודת בדיקת התאמה של חוזק לחיצה</h2>
+        <div class="cert-subtitle">לפי דרישות ת"י 118 ות"י 26 חלק 4.1</div>
+        
+        <div class="cert-status-watermark" id="cert-watermark">מתאים לתקן</div>
+        
+        <div class="cert-details-grid">
+          <div class="cert-detail-item">
+            <span class="cert-label">מספר תעודת בדיקה</span>
+            <span class="cert-value value-mono" id="cert-serial">CERT-2026-99120</span>
+          </div>
+          <div class="cert-detail-item">
+            <span class="cert-label">מספר מדבקה / נטילה</span>
+            <span class="cert-value value-mono" id="cert-specimen-id">12345</span>
+          </div>
+          <div class="cert-detail-item">
+            <span class="cert-label">תאריך היציקה</span>
+            <span class="cert-value" id="cert-cast-date">2026-05-18</span>
+          </div>
+          <div class="cert-detail-item">
+            <span class="cert-label">תאריך הבדיקה במעבדה</span>
+            <span class="cert-value" id="cert-test-date">2026-05-25</span>
+          </div>
+          <div class="cert-detail-item">
+            <span class="cert-label">אתר / אלמנט נוצק</span>
+            <span class="cert-value" id="cert-location">קיר - באר שבע</span>
+          </div>
+          <div class="cert-detail-item">
+            <span class="cert-label">מספר פרויקט / הסכם</span>
+            <span class="cert-value value-mono" id="cert-project">פרויקט 707303/1</span>
+          </div>
+          <div class="cert-detail-item">
+            <span class="cert-label">סוג בטון נדרש</span>
+            <span class="cert-value" id="cert-grade">ב-30</span>
+          </div>
+          <div class="cert-detail-item">
+            <span class="cert-label">סומך בטון (Slump)</span>
+            <span class="cert-value" id="cert-slump">8</span>
+          </div>
+          <div class="cert-detail-item">
+            <span class="cert-label">מידות קוביית מדגם</span>
+            <span class="cert-value" id="cert-dims">150x150x150 מ"מ</span>
+          </div>
+          <div class="cert-detail-item">
+            <span class="cert-label">סוג הצמנט</span>
+            <span class="cert-value" id="cert-cement">צ.פ</span>
+          </div>
+        </div>
+
+        <!-- 7-Day & 28-Day Strengths Comparison Table -->
+        <div class="cert-calculation-box">
+          <div class="cert-calc-formula" style="margin-bottom: 12px; font-weight: bold; border-bottom: 1px solid #CCC; padding-bottom: 6px;">תוצאות מעיכה וחוזק לחיצה בגילאי 7 ו-28 ימים:</div>
+          
+          <table style="width: 100%; text-align: right; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="border-bottom: 2px solid #EEE;">
+                <th style="padding: 6px 0;">גיל המדגם</th>
+                <th style="padding: 6px 0;">עומס שבר (kN)</th>
+                <th style="padding: 6px 0;">חוזק לחיצה (MPa)</th>
+                <th style="padding: 6px 0; text-align: left;">מצב התאמה</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid #EEE;">
+                <td style="padding: 8px 0;">חוזק לחיצה בגיל 7 ימים</td>
+                <td style="padding: 8px 0; font-family: var(--font-mono);" id="cert-load-7d">745.0 kN</td>
+                <td style="padding: 8px 0; font-family: var(--font-mono); font-weight: bold;" id="cert-strength-7d">33.10 MPa</td>
+                <td style="padding: 8px 0; text-align: left; color: var(--safety-orange); font-weight: bold;">אינדיקטיבי</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0;">חוזק לחיצה בגיל 28 יום</td>
+                <td style="padding: 8px 0; font-family: var(--font-mono);" id="cert-load-28d">952.0 kN</td>
+                <td style="padding: 8px 0; font-family: var(--font-mono); font-weight: 800; font-size: 16px; color: var(--border-focus);" id="cert-strength-28d">42.30 MPa</td>
+                <td style="padding: 8px 0; text-align: left; font-weight: bold;" id="cert-conformity-text">מתאים לתקן</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="cert-signatures">
+          <div class="cert-sig-block">
+            <div class="cert-sig-line">
+              <img src="" id="cert-sig-image" style="max-height: 40px; filter: invert(1) brightness(0.2);" alt="חתימת דוגם">
+            </div>
+            <span class="cert-sig-title">חתימת דוגם המעבדה</span>
+          </div>
+          <div class="cert-sig-block">
+            <div class="cert-sig-line" style="font-family: var(--font-tech); font-weight: 700; font-size: 14px; font-style: italic;">
+              דר' שמואל לוי, אינג'
+            </div>
+            <span class="cert-sig-title">מאשר תעודה מוסמך מעבדה</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 16px;">
+        <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> הדפס תעודת בדיקה רשמית</button>
+        <button class="btn btn-secondary" onclick="closeCertificateModal()">סגור תעודה</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core JavaScript Controller -->
+  <script src="app.js"></script>
+</body>
+</html>
