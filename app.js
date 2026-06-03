@@ -1,9 +1,11 @@
+
 // Concretus - Core Application Controller (Supabase Integrated)
 
 // === SUPABASE CONFIGURATION ===
 // Replace these placeholders with your actual Supabase URL and Anon Key
 const SUPABASE_URL = "https://vsgnqebypdyhakibruqj.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzZ25xZWJ5cGR5aGFraWJydXFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MDU2OTAsImV4cCI6MjA5NTQ4MTY5MH0.xno6BzFL917b7vjatJiw43aFmE-lKR0rNbgmZ7RyrtI";
+
 
 let supabaseClient = null;
 
@@ -858,7 +860,7 @@ async function handleCastSubmission(e) {
 
   const area = activeDimension === 150 ? 22500 : 10000;
 
-  // Collect the dynamic list of sub-specimens securely
+  // Collect dynamic list of sub-specimens securely
   const specimenCards = document.querySelectorAll(".specimen-dynamic-card");
   const specimensArray = [];
   
@@ -928,7 +930,7 @@ async function handleCastSubmission(e) {
         contractor: newCube.contractor,
         inspector: newCube.inspector,
         site_address: newCube.siteAddress,
-        building_desc: newCube.buildingDesc,
+        building_desc: newCube.building_desc,
         element: newCube.element,
         volume: newCube.volume,
         supplier: newCube.supplier,

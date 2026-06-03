@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -195,7 +196,7 @@
         <div class="casting-form-grid">
           
           <div class="form-card">
-            <!-- STEP 1: STICKER VERIFICATION BLOCK -->
+            <!-- STEP 1: STICKER VERIFICATION BLOCK (6 digits) -->
             <div class="sticker-verify-card" id="step-sticker">
                 <h2 style="font-family: var(--font-tech); color: var(--safety-orange); margin-bottom: 8px;"><i class="fa-solid fa-barcode"></i> אימות דף מדבקות נטילה</h2>
                 <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">לפני מילוי הפרטים, הקלד את מספר המדבקה (6 ספרות) להצמדה על קוביות הבדיקה.</p>
@@ -206,8 +207,7 @@
                            maxlength="6" 
                            id="sticker-number" 
                            class="sticker-input-field" 
-                           placeholder="000000"
-                           oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                           placeholder="000000">
                     <button type="button" class="btn btn-primary" id="btn-verify" onclick="verifySticker()">אמת והמשך למילוי טופס</button>
                 </div>
                 <div id="sticker-feedback" class="feedback"></div>
@@ -286,7 +286,8 @@
                       <div class="btn-option" onclick="selectOption('element-group', this, 'רצפה')">רצפה</div>
                       <div class="btn-option" onclick="selectOption('element-group', this, 'אחר')">אחר</div>
                     </div>
-                    <input type="hidden" id="selected-element" value="" required>
+                    <!-- focusable custom check validation to keep required attribute fully working -->
+                    <input type="text" id="selected-element" required style="opacity: 0; width: 0; height: 0; position: absolute; pointer-events: none;">
                   </div>
 
                   <div class="form-group">
@@ -314,7 +315,7 @@
                         <div class="btn-option" onclick="selectOption('certified-group', this, 'כן')">כן</div>
                         <div class="btn-option" onclick="selectOption('certified-group', this, 'לא')">לא</div>
                       </div>
-                      <input type="hidden" id="is-certified" value="" required>
+                      <input type="text" id="is-certified" required style="opacity: 0; width: 0; height: 0; position: absolute; pointer-events: none;">
                     </div>
                   </div>
 
@@ -392,7 +393,7 @@
                 </div>
               </div>
 
-              <!-- Section 4: Dynamic Specimen Generation (Refactored) -->
+              <!-- Section 4: Dynamic Specimen Generation -->
               <div class="accordion">
                 <div class="accordion-header" onclick="toggleAccordion(this)">
                   <span>4. פרטי הדגימות והמדגמים בשטח</span>
@@ -407,7 +408,7 @@
                         <div class="btn-option" onclick="selectOption('sampled-from-group', this, 'משאבה')">משאבה</div>
                         <div class="btn-option" onclick="selectOption('sampled-from-group', this, 'מיכל עברה')">מיכל עברה</div>
                       </div>
-                      <input type="hidden" id="selected-sampled-from" value="" required>
+                      <input type="text" id="selected-sampled-from" required style="opacity: 0; width: 0; height: 0; position: absolute; pointer-events: none;">
                     </div>
                     <div class="form-group">
                       <label>סומך בטון (Slump)</label>
@@ -425,7 +426,6 @@
                       <input type="text" id="sampler-name" placeholder="משה לוי" required>
                     </div>
                     <div class="form-group">
-                      <!-- Choosing how many specimens to generate -->
                       <label>מספר מדגמים דרוש</label>
                       <div class="adjuster-container" style="width: 100%;">
                         <button type="button" class="adj-btn" onclick="adjustSpecimensCount(-1)">-</button>
@@ -435,10 +435,8 @@
                     </div>
                   </div>
 
-                  <!-- Container where dynamic forms will be injected -->
-                  <div id="specimens-dynamic-container">
-                    <!-- Injected dynamically via app.js -->
-                  </div>
+                  <!-- Container where dynamic forms are injected -->
+                  <div id="specimens-dynamic-container"></div>
 
                   <!-- Specimen Dimensions Selection -->
                   <div class="form-group" style="margin-top: 24px;">
@@ -514,6 +512,257 @@
             </div>
           </div>
           
+        </div>
+      </section>
+
+      <!-- --- View 3: Dispatch & Manifest Log Tab --- -->
+      <section class="view-panel" id="dispatch-view">
+        <div class="dispatch-layout">
+          
+          <!-- Master Castings Ledger -->
+          <div class="table-container">
+            <div class="table-header-row">
+              <h2>פנקס נטילות שטח פעיל</h2>
+              <span style="font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono);" id="ledger-count-display">Showing 0 items</span>
+            </div>
+            
+            <table class="concrete-table">
+              <thead>
+                <tr>
+                  <th>מספר מדבקה / נטילה</th>
+                  <th>שם המזמין (לקוח)</th>
+                  <th>שם הדוגם</th>
+                  <th>סוג בטון</th>
+                  <th>סומך</th>
+                  <th>תאריך יציקה</th>
+                  <th>סטטוס</th>
+                  <th style="text-align: left;">פעולה</th>
+                </tr>
+              </thead>
+              <tbody id="ledger-table-body">
+                <!-- Rendered Dynamically via JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Shipping Manifest Sheet -->
+          <div class="manifest-panel">
+            <h2 style="font-family: var(--font-tech); font-size: 20px; margin-bottom: 8px;">תעודת משלוח ומניפסט למעבדה</h2>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 24px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
+              בדוק את פרטי הנטילה, הפק קוד מעקב מהיר (QR) ושלח את המדגמים הפיזיים למעבדה המרכזית.
+            </p>
+            
+            <!-- Empty state -->
+            <div class="manifest-empty" id="manifest-empty-view">
+              <i class="fa-solid fa-barcode"></i>
+              <p>בחר מדגם נטילה מהפנקס משמאל כדי להציג את תעודת המשלוח וקוד המעקב</p>
+            </div>
+
+            <!-- Filled Sheet -->
+            <div id="manifest-filled-view" style="display: none;">
+              <div class="manifest-sheet" id="print-manifest-area">
+                <div class="manifest-logo">סיסטם מעבדות בטון</div>
+                <div class="manifest-header">
+                  <div class="manifest-header-left" style="text-align: left;">
+                    <h3 id="waybill-project">פרויקט הדרום</h3>
+                    <p id="waybill-id">CUBE-2026-0091</p>
+                  </div>
+                  <!-- Barcode / QR Box -->
+                  <div class="manifest-qr-box">
+                    <canvas id="manifest-qr-canvas" width="60" height="60"></canvas>
+                  </div>
+                </div>
+
+                <div class="manifest-grid" dir="rtl">
+                  <div class="manifest-item">
+                    <span class="manifest-label">סוג בטון</span>
+                    <span class="manifest-val" id="waybill-mix">ב-30</span>
+                  </div>
+                  <div class="manifest-item">
+                    <span class="manifest-label">סומך בטון</span>
+                    <span class="manifest-val" id="waybill-slump">8</span>
+                  </div>
+                  <div class="manifest-item">
+                    <span class="manifest-label">אלמנט נוצק</span>
+                    <span class="manifest-val" id="waybill-location">קיר</span>
+                  </div>
+                  <div class="manifest-item">
+                    <span class="manifest-label">תאריך יציקה</span>
+                    <span class="manifest-val" id="waybill-cast-date">2026-05-25</span>
+                  </div>
+                  <div class="manifest-item">
+                    <span class="manifest-label">דרגת חשיפה</span>
+                    <span class="manifest-val" id="waybill-exposure">2</span>
+                  </div>
+                  <div class="manifest-item">
+                    <span class="manifest-label">מידות תבנית</span>
+                    <span class="manifest-val" id="waybill-dims">150x150x150 מ"מ</span>
+                  </div>
+                </div>
+
+                <div class="manifest-sig-box">
+                  <div class="manifest-item">
+                    <span class="manifest-label" style="margin-bottom: 2px;">דוגם המעבדה</span>
+                    <span class="manifest-val" style="font-size: 11px;" id="waybill-sampler-name">משה לוי</span>
+                  </div>
+                  <img class="manifest-sig-img" id="waybill-sig-image" src="" alt="חתימת דוגם">
+                </div>
+              </div>
+
+              <!-- Dispatch Action buttons -->
+              <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 24px;">
+                <button class="btn btn-primary" id="btn-dispatch-waybill" onclick="dispatchActiveCube()"><i class="fa-solid fa-paper-plane"></i> שלח למעבדה באופן דיגיטלי</button>
+                <button class="btn btn-secondary" onclick="printWaybill()"><i class="fa-solid fa-print"></i> הדפס מדבקת מעקב QR</button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- --- View 4: Lab Dashboard & MANUAL Testing Entry --- -->
+      <section class="view-panel" id="lab-view">
+        <div class="lab-layout">
+          
+          <!-- Incoming Shipments & Receiving Queue -->
+          <div class="queue-card">
+            <h2 style="font-family: var(--font-tech); font-size: 20px; margin-bottom: 4px;"><i class="fa-solid fa-truck-moving"></i> תור קבלת משלוחי קוביות</h2>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 20px;">בדוק קוביות שהגיעו משטח האתר, אשר את קבלתן והטען אותן למערכת הזנת נתוני הלחיצה.</p>
+            
+            <div class="search-box-container">
+              <i class="fa-solid fa-magnifying-glass" style="right: 16px; left: auto;"></i>
+              <input type="text" class="search-input" id="lab-queue-search" style="padding: 12px 48px 12px 16px;" placeholder="חפש לפי מספר מדבקה..." oninput="filterLabQueue(this.value)">
+            </div>
+
+            <div class="queue-list" id="lab-queue-list">
+              <!-- Rendered Dynamically via JS -->
+            </div>
+          </div>
+
+          <!-- Manual Compressive Testing Input Panel -->
+          <div class="tester-card">
+            <h2 style="font-family: var(--font-tech); font-size: 20px; margin-bottom: 4px;"><i class="fa-solid fa-file-signature"></i> הזנת נתוני בדיקת שבר מנואלית</h2>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 24px;">הזן את עומסי השבר (kN) שהתקבלו בפועל ממכבש הלחיצה עבור 7 ימים ו-28 ימים.</p>
+            
+            <div class="control-console">
+              <div class="telemetry-grid" style="margin-bottom: 20px;">
+                <div class="telemetry-screen">
+                  <span class="telemetry-label">קובייה בבדיקה</span>
+                  <span class="telemetry-value" id="telem-specimen-id" style="font-size: 18px; line-height: 2;">טרם נבחרה קובייה</span>
+                </div>
+                <div class="telemetry-screen">
+                  <span class="telemetry-label">סוג בטון נדרש</span>
+                  <span class="telemetry-value" id="telem-mix-grade" style="font-size: 18px; line-height: 2;">N/A</span>
+                </div>
+              </div>
+
+              <!-- Manual Inputs Form -->
+              <div id="manual-crush-inputs" style="display: none; background: rgba(255,255,255,0.02); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-bottom: 20px;">
+                <div class="form-group-row">
+                  <div class="form-group">
+                    <label for="lab-load-7d">עומס שבר בגיל 7 ימים (kN)</label>
+                    <input type="number" step="0.1" id="lab-load-7d" class="form-control" placeholder="לדוגמה: 745.0" oninput="calculateOnTheFlyStrength('7d')">
+                    <span id="strength-7d-calc" style="font-size: 12px; color: var(--safety-orange); font-weight: bold; margin-top: 4px;">חוזק: 0.00 MPa</span>
+                  </div>
+                  <div class="form-group">
+                    <label for="lab-load-28d">עומס שבר בגיל 28 יום (kN)</label>
+                    <input type="number" step="0.1" id="lab-load-28d" class="form-control" placeholder="לדוגמה: 952.0" oninput="calculateOnTheFlyStrength('28d')">
+                    <span id="strength-28d-calc" style="font-size: 12px; color: var(--success); font-weight: bold; margin-top: 4px;">חוזק: 0.00 MPa</span>
+                  </div>
+                </div>
+                
+                <button type="button" class="btn btn-primary" id="btn-save-results" style="margin-top: 10px;" onclick="saveManualCrushResults()"><i class="fa-solid fa-floppy-disk"></i> שמור תוצאות בדיקה והמשך</button>
+              </div>
+              
+              <div class="stat-card" style="padding: 16px; border-style: dashed; background-color: transparent;" id="simulator-status-panel">
+                <p style="font-size: 12px; color: var(--text-secondary); text-align: center; margin: 0;">
+                  <i class="fa-solid fa-circle-question"></i> בחר מדגם פעיל מהתור משמאל על מנת לפתוח את שדות הזנת הנתונים.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- --- View 5: Project Analytics & Reports Tab --- -->
+      <section class="view-panel" id="reports-view">
+        
+        <!-- Search Dashboard Card widget -->
+        <div class="card" style="margin-bottom: 24px; border: 1px solid var(--safety-orange);">
+          <h3 style="font-family: var(--font-tech); margin-bottom: 12px; font-size: 18px;"><i class="fa-solid fa-magnifying-glass text-safety"></i> איתור מהיר של תעודות בדיקה לפי לקוח / פרויקט / מדבקה</h3>
+          <div class="search-box-container" style="margin-bottom: 0;">
+            <i class="fa-solid fa-magnifying-glass" style="right: 16px; left: auto; color: var(--safety-orange); top: 50%;"></i>
+            <input type="text" class="search-input" id="cert-client-search" style="padding: 14px 48px 14px 16px; font-size: 15px;" placeholder="הקלד שם לקוח / מזמין, מספר פרויקט או מספר מדבקה לסינון מהיר..." oninput="filterCertificatesByClient(this.value)">
+          </div>
+        </div>
+
+        <div class="analytics-grid">
+          
+          <!-- Compressive Strength distribution bar chart -->
+          <div class="chart-card">
+            <h2 style="font-family: var(--font-tech); font-size: 20px; margin-bottom: 8px;"><i class="fa-solid fa-chart-simple"></i> התפלגות חוזק לחיצה (מדגמי 28 יום)</h2>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 24px;">השוואת חוזק המעיכה בפועל (במגפ"ס) מול דרישות התקן לכל סוג בטון.</p>
+            
+            <div class="chart-wrapper" id="svg-chart-container">
+              <!-- Rendered via JS -->
+            </div>
+            
+            <!-- Horizontal Chart Legend -->
+            <div style="display: flex; justify-content: center; gap: 32px; margin-top: 16px; font-size: 12px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 2px; background: linear-gradient(to top, var(--safety-orange), #FF8F00);"></span>
+                <span>חוזק לחיצה שהושג (MPa)</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="display: inline-block; width: 32px; height: 2px; background-color: var(--success); border-top: 2px dashed var(--success);"></span>
+                <span>סף חוזק נדרש בתקן ת"י 118</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Concrete Mix Target Conformity panel -->
+          <div class="chart-card" style="display: flex; flex-direction: column; gap: 24px;">
+            <h2 style="font-family: var(--font-tech); font-size: 20px; margin-bottom: 4px;"><i class="fa-solid fa-microchip"></i> אחוז התאמה ותקינות לפי סוג בטון</h2>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">מדד תקינות מצטבר המחושב אוטומטית מכלל המדגמים שנבדקו.</p>
+            
+            <div class="mix-compliance-list" id="compliance-progress-list">
+              <!-- Rendered via JavaScript -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Ledger -->
+        <div class="table-container">
+          <div class="table-header-row">
+            <h2>תעודות בדיקה ואישור - מאגר בטון סופי</h2>
+            <div>
+              <button class="btn btn-secondary" style="width: auto; padding: 8px 16px; font-size: 13px;" onclick="exportReportsCSV()"><i class="fa-solid fa-file-csv"></i> ייצא לאקסל (CSV)</button>
+            </div>
+          </div>
+          
+          <table class="concrete-table">
+            <thead>
+              <tr>
+                <th>תעודת בדיקה מס׳</th>
+                <th>מספר מדבקה / נטילה</th>
+                <th>שם המזמין (לקוח)</th>
+                <th>מיקום היציקה</th>
+                <th>סוג הבטון</th>
+                <th>סומך</th>
+                <th>שבר 7 ימים (kN)</th>
+                <th>שבר 28 ימים (kN)</th>
+                <th>חוזק 28 יום (MPa)</th>
+                <th>התאמה לתקן</th>
+                <th style="text-align: left;">תעודה</th>
+              </tr>
+            </thead>
+            <tbody id="completed-ledger-body">
+              <!-- Rendered Dynamically via JS -->
+            </tbody>
+          </table>
         </div>
       </section>
 
