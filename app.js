@@ -2,8 +2,8 @@
 
 // === SUPABASE CONFIGURATION ===
 // Replace these placeholders with your actual Supabase URL and Anon Key
-const SUPABASE_URL = "https://vsgnqebypdyhakibruqj.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzZ25xZWJ5cGR5aGFraWJydXFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MDU2OTAsImV4cCI6MjA5NTQ4MTY5MH0.xno6BzFL917b7vjatJiw43aFmE-lKR0rNbgmZ7RyrtI";
+const SUPABASE_URL = "YOUR_SUPABASE_URL";
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
 
 let supabaseClient = null;
 
@@ -19,7 +19,7 @@ if (SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_ANON_KEY !== "YOUR_SUPABASE
 // Fallback seed data if Supabase credentials are not configured
 const SEED_BATCH_DATA = [
   {
-    id: "34901", 
+    id: "349010", 
     projectNo: "707303/1",
     orderNo: "95205419",
     clientName: "תעשיות רדימיקס בע״מ",
@@ -39,7 +39,7 @@ const SEED_BATCH_DATA = [
     sampledFrom: "הערבל",
     slump: 8,
     deliveryNote: "95205419",
-    mixerNo: "ערבל 349",
+    mixerNo: "349",
     batchNo: "1",
     samplerName: "משה לוי",
     timeStart: "13:00",
@@ -142,7 +142,6 @@ async function establishSessionUser(user) {
   activeUser = user;
   
   try {
-    // Attempt to query the profiles table using maybeSingle to avoid crash on empty rows
     let { data, error } = await supabaseClient
       .from("profiles")
       .select("role, full_name")
@@ -153,7 +152,6 @@ async function establishSessionUser(user) {
       console.warn("Could not retrieve profile:", error.message);
     }
 
-    // Auto-recreate profiles if the database row does not exist (e.g., if user was made in manual dashboard)
     if (!data) {
       const fallbackName = user.user_metadata?.full_name || user.email.split('@')[0];
       const fallbackRole = user.user_metadata?.role || "field_worker";
@@ -179,7 +177,6 @@ async function establishSessionUser(user) {
     activeUserRole = data ? data.role : "field_worker";
     const userFullName = data ? data.full_name : user.email;
     
-    // Assign role-based visual configurations
     const wrapper = document.getElementById("app-wrapper");
     wrapper.className = "app-container role-" + activeUserRole;
     
@@ -226,14 +223,13 @@ async function handleAuthSubmit(e) {
 
   try {
     if (isRegisterMode) {
-      // Sign Up Process
       const { data, error } = await supabaseClient.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: fullname || "משתמש חדש",
-            role: "field_worker" // Enforced default role metadata
+            role: "field_worker"
           }
         }
       });
@@ -244,7 +240,6 @@ async function handleAuthSubmit(e) {
       feedback.textContent = "הרשמה הושלמה בהצלחה! כעת ניתן להתחבר.";
       toggleAuthMode();
     } else {
-      // Sign In Process
       const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
         password
@@ -451,7 +446,7 @@ function updateHeaderStats() {
   if (statFailed) statFailed.textContent = failed;
 }
 
-// --- Step 1: Sticker Verification Logic ---
+// --- Step 1: Sticker Verification Logic (Updated to 6-digit requirements) ---
 function verifySticker() {
   const inputVal = document.getElementById("sticker-number").value;
   const feedback = document.getElementById("sticker-feedback");
@@ -459,10 +454,10 @@ function verifySticker() {
   const verifyBtn = document.getElementById("btn-verify");
   const stickerInput = document.getElementById("sticker-number");
 
-  if (inputVal.length !== 5) {
+  if (inputVal.length !== 6) {
     feedback.style.display = "block";
     feedback.className = "feedback error";
-    feedback.innerText = "❌ שגיאה: יש להזין מספר מדבקה באורך 5 ספרות בדיוק.";
+    feedback.innerText = "❌ שגיאה: יש להזין מספר מדבקה באורך 6 ספרות בדיוק.";
     formBody.classList.add("hidden");
     return;
   }
@@ -501,10 +496,9 @@ function resetCastingFormState() {
   });
 
   values = { volume: 8, slump: 8, samples: 6, exposure: 2 };
-  document.getElementById("volume-display").innerText = values.volume;
+  document.getElementById("exposure-display").innerText = values.exposure;
   document.getElementById("slump-display").innerText = values.slump;
   document.getElementById("samples-display").innerText = values.samples;
-  document.getElementById("exposure-display").innerText = values.exposure;
 
   canvases = {};
   contexts = {};
@@ -761,34 +755,48 @@ async function handleCastSubmission(e) {
     return;
   }
 
+  // Safe fallback utility: if a required field is left empty, the code falls back to the placeholder value.
+  const getFormValue = (id) => {
+    const el = document.getElementById(id);
+    if (!el) return "";
+    return el.value.trim() !== "" ? el.value.trim() : (el.placeholder || "");
+  };
+
   const stickerNo = document.getElementById("sticker-number").value;
-  const projectNo = document.getElementById("project-no").value;
-  const orderNo = document.getElementById("order-no").value;
+  const projectNo = getFormValue("project-no");
+  const orderNo = getFormValue("order-no");
   const castingDate = document.getElementById("casting-date").value;
-  const clientName = document.getElementById("client-name").value;
-  const contractor = document.getElementById("contractor").value;
-  const inspector = document.getElementById("inspector").value;
-  const siteAddress = document.getElementById("site-address").value;
-  const buildingDesc = document.getElementById("building-desc").value;
+  const clientName = getFormValue("client-name");
+  
+  // Optional fields: read raw values directly without placeholder fallbacks
+  const contractor = document.getElementById("contractor").value.trim();
+  const inspector = document.getElementById("inspector").value.trim();
+  
+  const siteAddress = getFormValue("site-address");
+  const buildingDesc = getFormValue("building-desc");
 
   const element = document.getElementById("selected-element").value;
-  const supplier = document.getElementById("supplier").value;
+  const supplier = getFormValue("supplier");
   const isCertified = document.getElementById("is-certified").value;
   const concreteType = document.getElementById("concrete-type").value;
-  const cementType = document.getElementById("cement-type").value;
+  const cementType = getFormValue("cement-type");
   const aggregateSize = document.getElementById("aggregate-size").value;
   
   const characCheckboxes = document.querySelectorAll('input[name="charac"]:checked');
   const characterization = Array.from(characCheckboxes).map(cb => cb.value);
 
   const sampledFrom = document.getElementById("selected-sampled-from").value;
-  const deliveryNote = document.getElementById("delivery-note").value;
-  const mixerNo = document.getElementById("mixer-no").value;
-  const batchNo = document.getElementById("batch-no").value;
-  const samplerName = document.getElementById("sampler-name").value;
+  const deliveryNote = getFormValue("delivery-note");
+  const mixerNo = getFormValue("mixer-no");
+  const batchNo = getFormValue("batch-no");
+  const samplerName = getFormValue("sampler-name");
   const timeStart = document.getElementById("time-start").value;
   const timeEnd = document.getElementById("time-end").value;
   const remarks = document.getElementById("remarks").value;
+
+  // Read volume from number input field with standard fallback
+  const volEl = document.getElementById("volume-input");
+  const volumeVal = volEl && volEl.value !== "" ? parseFloat(volEl.value) : parseFloat(volEl.placeholder || "8");
 
   const area = activeDimension === 150 ? 22500 : 10000;
 
@@ -802,7 +810,7 @@ async function handleCastSubmission(e) {
     siteAddress,
     buildingDesc,
     element,
-    volume: values.volume,
+    volume: volumeVal,
     supplier,
     isCertified,
     concreteType,
