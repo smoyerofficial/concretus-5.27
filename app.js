@@ -2,8 +2,8 @@
 
 // === SUPABASE CONFIGURATION ===
 // Replace these placeholders with your actual Supabase URL and Anon Key
-const SUPABASE_URL = "YOUR_SUPABASE_URL";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+const SUPABASE_URL = "https://vsgnqebypdyhakibruqj.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzZ25xZWJ5cGR5aGFraWJydXFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MDU2OTAsImV4cCI6MjA5NTQ4MTY5MH0.xno6BzFL917b7vjatJiw43aFmE-lKR0rNbgmZ7RyrtI";
 
 let supabaseClient = null;
 
@@ -38,13 +38,8 @@ const SEED_BATCH_DATA = [
     characterization: ["רגיל", "משאבה"],
     sampledFrom: "הערבל",
     slump: 8,
-    deliveryNote: "95205419",
-    mixerNo: "349",
-    batchNo: "1",
     samplerName: "משה לוי",
-    timeStart: "13:00",
-    timeEnd: "13:30",
-    samplesCount: 6,
+    samplesCount: 3,
     dimension: 150,
     area: 22500,
     status: "completed",
@@ -57,7 +52,12 @@ const SEED_BATCH_DATA = [
     conformity: "pass",
     certSerial: "CERT-2026-10492",
     remarks: "הבטון סופק בטמפרטורה תקינה, לא הוספו מים בשטח.",
-    signature1: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAABGAQMAaad5K2v3AAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAABRJREFUeNpjYBgFo2AUjIJRMApIBwAGQAABeW2tagAAAABJRU5ErkJggg=="
+    signature1: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAABGAQMAaad5K2v3AAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAABRJREFUeNpjYBgFo2AUjIJRMApIBwAGQAABeW2tagAAAABJRU5ErkJggg==",
+    specimens: [
+      { batchVolume: 8, cumulativeVolume: 8, mixerNo: "349", deliveryNote: "95205419", timeDeparture: "11:30", timeSampling: "12:15", timePrep: "12:30" },
+      { batchVolume: 8, cumulativeVolume: 16, mixerNo: "350", deliveryNote: "95205420", timeDeparture: "12:00", timeSampling: "12:45", timePrep: "13:00" },
+      { batchVolume: 8, cumulativeVolume: 24, mixerNo: "351", deliveryNote: "95205421", timeDeparture: "12:30", timeSampling: "13:15", timePrep: "13:30" }
+    ]
   }
 ];
 
@@ -86,7 +86,7 @@ let isCrushingInProgress = false;
 let canvases = {};
 let contexts = {};
 let drawingStates = {};
-let values = { volume: 8, slump: 8, samples: 6, exposure: 2 };
+let values = { volume: 8, slump: 8, samples: 3, exposure: 2 };
 
 // --- Initialize App ---
 document.addEventListener("DOMContentLoaded", () => {
@@ -103,7 +103,75 @@ document.addEventListener("DOMContentLoaded", () => {
     console.warn("Supabase keys not found. Running in local fallback mode.");
     loadFallbackData();
   }
+
+  // Pre-generate dynamic specimen inputs
+  updateSpecimensForms(values.samples);
 });
+
+// --- Dynamic Specimen Forms Generator ---
+function updateSpecimensForms(count) {
+  const container = document.getElementById("specimens-dynamic-container");
+  if (!container) return;
+  container.innerHTML = "";
+  
+  for (let i = 1; i <= count; i++) {
+    const card = document.createElement("div");
+    card.className = "specimen-dynamic-card";
+    card.style = "background: rgba(255,255,255,0.015); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px; margin-top: 16px; display: flex; flex-direction: column; gap: 12px; text-align: right;";
+    card.innerHTML = `
+      <h4 style="color: var(--safety-orange); border-bottom: 1px dashed var(--border-subtle); padding-bottom: 6px; font-size: 14px; font-family: var(--font-tech); margin-bottom: 8px;">סדרה / מדגם מספר ${i}</h4>
+      
+      <div class="form-group-row">
+        <div class="form-group">
+          <label>נפח אצווה (מ"ק)</label>
+          <input type="number" step="0.1" class="specimen-batch-vol form-control" placeholder="8" required style="width: 100%; text-align: right;">
+        </div>
+        <div class="form-group">
+          <label>נפח מצטבר (מ"ק)</label>
+          <input type="number" step="0.1" class="specimen-cum-vol form-control" placeholder="${8 * i}" required style="width: 100%; text-align: right;">
+        </div>
+      </div>
+
+      <div class="form-group-row">
+        <div class="form-group">
+          <label>מספר ערבל</label>
+          <input type="text" class="specimen-mixer-no form-control" placeholder="349" required style="width: 100%; text-align: right;">
+        </div>
+        <div class="form-group">
+          <label>מספר תעודת משלוח</label>
+          <input type="text" class="specimen-delivery-note form-control" placeholder="95205419" required style="width: 100%; text-align: right;">
+        </div>
+      </div>
+
+      <div class="form-group-row" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="form-group">
+          <label>שעת יציאה</label>
+          <input type="time" class="specimen-time-departure form-control" required style="width: 100%; text-align: right;">
+        </div>
+        <div class="form-group">
+          <label>שעת נטילה</label>
+          <input type="time" class="specimen-time-sampling form-control" required style="width: 100%; text-align: right;">
+        </div>
+        <div class="form-group">
+          <label>שעת הכנה</label>
+          <input type="time" class="specimen-time-prep form-control" required style="width: 100%; text-align: right;">
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  }
+}
+
+function adjustSpecimensCount(amount) {
+  values.samples += amount;
+  if (values.samples < 1) values.samples = 1;
+  if (values.samples > 10) values.samples = 10; // safety ceiling
+  
+  const displayElement = document.getElementById("samples-display");
+  if (displayElement) displayElement.innerText = values.samples;
+  
+  updateSpecimensForms(values.samples);
+}
 
 // --- Fallback Local Methods ---
 function loadFallbackData() {
@@ -317,12 +385,7 @@ async function syncAllDataFromSupabase() {
       characterization: dbRow.characterization || [],
       sampledFrom: dbRow.sampled_from,
       slump: dbRow.slump,
-      deliveryNote: dbRow.delivery_note,
-      mixerNo: dbRow.mixer_no,
-      batchNo: dbRow.batch_no,
       samplerName: dbRow.sampler_name,
-      timeStart: dbRow.time_start,
-      timeEnd: dbRow.time_end,
       samplesCount: dbRow.samples_count,
       dimension: dbRow.dimension,
       area: dbRow.area,
@@ -337,7 +400,8 @@ async function syncAllDataFromSupabase() {
       certSerial: dbRow.cert_serial,
       remarks: dbRow.remarks,
       signature1: dbRow.signature1,
-      signature2: dbRow.signature2
+      signature2: dbRow.signature2,
+      specimens: dbRow.specimens || []
     }));
 
     renderDashboardCubes();
@@ -446,7 +510,7 @@ function updateHeaderStats() {
   if (statFailed) statFailed.textContent = failed;
 }
 
-// --- Step 1: Sticker Verification Logic (Updated to 6-digit requirements) ---
+// --- Step 1: Sticker Verification Logic ---
 function verifySticker() {
   const inputVal = document.getElementById("sticker-number").value;
   const feedback = document.getElementById("sticker-feedback");
@@ -495,7 +559,7 @@ function resetCastingFormState() {
     if (input) input.checked = false;
   });
 
-  values = { volume: 8, slump: 8, samples: 6, exposure: 2 };
+  values = { volume: 8, slump: 8, samples: 3, exposure: 2 };
   document.getElementById("exposure-display").innerText = values.exposure;
   document.getElementById("slump-display").innerText = values.slump;
   document.getElementById("samples-display").innerText = values.samples;
@@ -503,6 +567,8 @@ function resetCastingFormState() {
   canvases = {};
   contexts = {};
   drawingStates = {};
+  
+  updateSpecimensForms(values.samples);
 }
 
 // --- Accordion Logic ---
@@ -755,7 +821,6 @@ async function handleCastSubmission(e) {
     return;
   }
 
-  // Safe fallback utility: if a required field is left empty, the code falls back to the placeholder value.
   const getFormValue = (id) => {
     const el = document.getElementById(id);
     if (!el) return "";
@@ -768,7 +833,6 @@ async function handleCastSubmission(e) {
   const castingDate = document.getElementById("casting-date").value;
   const clientName = getFormValue("client-name");
   
-  // Optional fields: read raw values directly without placeholder fallbacks
   const contractor = document.getElementById("contractor").value.trim();
   const inspector = document.getElementById("inspector").value.trim();
   
@@ -786,19 +850,40 @@ async function handleCastSubmission(e) {
   const characterization = Array.from(characCheckboxes).map(cb => cb.value);
 
   const sampledFrom = document.getElementById("selected-sampled-from").value;
-  const deliveryNote = getFormValue("delivery-note");
-  const mixerNo = getFormValue("mixer-no");
-  const batchNo = getFormValue("batch-no");
   const samplerName = getFormValue("sampler-name");
-  const timeStart = document.getElementById("time-start").value;
-  const timeEnd = document.getElementById("time-end").value;
   const remarks = document.getElementById("remarks").value;
 
-  // Read volume from number input field with standard fallback
   const volEl = document.getElementById("volume-input");
   const volumeVal = volEl && volEl.value !== "" ? parseFloat(volEl.value) : parseFloat(volEl.placeholder || "8");
 
   const area = activeDimension === 150 ? 22500 : 10000;
+
+  // Collect the dynamic list of sub-specimens securely
+  const specimenCards = document.querySelectorAll(".specimen-dynamic-card");
+  const specimensArray = [];
+  
+  specimenCards.forEach((card, idx) => {
+    const cardNum = idx + 1;
+    
+    const batchVolEl = card.querySelector(".specimen-batch-vol");
+    const cumVolEl = card.querySelector(".specimen-cum-vol");
+    const mixerEl = card.querySelector(".specimen-mixer-no");
+    const delNoteEl = card.querySelector(".specimen-delivery-note");
+    const departureEl = card.querySelector(".specimen-time-departure");
+    const samplingEl = card.querySelector(".specimen-time-sampling");
+    const prepEl = card.querySelector(".specimen-time-prep");
+
+    specimensArray.push({
+      specimenIndex: cardNum,
+      batchVolume: batchVolEl && batchVolEl.value !== "" ? parseFloat(batchVolEl.value) : parseFloat(batchVolEl.placeholder || "8"),
+      cumulativeVolume: cumVolEl && cumVolEl.value !== "" ? parseFloat(cumVolEl.value) : parseFloat(cumVolEl.placeholder || (8 * cardNum).toString()),
+      mixerNo: mixerEl && mixerEl.value !== "" ? mixerEl.value.trim() : (mixerEl.placeholder || ""),
+      deliveryNote: delNoteEl && delNoteEl.value !== "" ? delNoteEl.value.trim() : (delNoteEl.placeholder || ""),
+      timeDeparture: departureEl ? departureEl.value : "",
+      timeSampling: samplingEl ? samplingEl.value : "",
+      timePrep: prepEl ? prepEl.value : ""
+    });
+  });
 
   const newCube = {
     id: stickerNo, 
@@ -820,12 +905,7 @@ async function handleCastSubmission(e) {
     characterization,
     sampledFrom,
     slump: values.slump,
-    deliveryNote,
-    mixerNo,
-    batchNo,
     samplerName,
-    timeStart,
-    timeEnd,
     samplesCount: values.samples,
     dimension: activeDimension,
     area,
@@ -833,7 +913,8 @@ async function handleCastSubmission(e) {
     castDate: castingDate,
     remarks,
     signature1: canvases[1].toDataURL(),
-    signature2: isSignatureCanvasEmpty(2) ? "" : canvases[2].toDataURL()
+    signature2: isSignatureCanvasEmpty(2) ? "" : canvases[2].toDataURL(),
+    specimens: specimensArray
   };
 
   if (supabaseClient) {
@@ -859,12 +940,7 @@ async function handleCastSubmission(e) {
         characterization: newCube.characterization,
         sampled_from: newCube.sampledFrom,
         slump: newCube.slump,
-        delivery_note: newCube.deliveryNote,
-        mixer_no: newCube.mixerNo,
-        batch_no: newCube.batchNo,
         sampler_name: newCube.samplerName,
-        time_start: newCube.timeStart,
-        time_end: newCube.timeEnd,
         samples_count: newCube.samplesCount,
         dimension: newCube.dimension,
         area: newCube.area,
@@ -873,6 +949,7 @@ async function handleCastSubmission(e) {
         remarks: newCube.remarks,
         signature1: newCube.signature1,
         signature2: newCube.signature2,
+        specimens: newCube.specimens,
         created_by: activeUser.id
       });
       if (error) throw error;
@@ -1587,7 +1664,7 @@ function exportReportsCSV() {
   }
 
   let csvContent = "data:text/csv;charset=utf-8,";
-  csvContent += "Certificate ID,Specimen ID,Project Agreement Number,Order Number,Client Name,Contractor,Inspector,Site Address,Building Description,Element,Casting Volume (m3),Concrete Supplier,Is Certified,Concrete Grade,Cement Type,Aggregate Size,Exposure Class,Slump,Delivery Note,Mixer Number,Batch Number,Sampler Name,Start Time,End Time,Samples Count,Dimension (mm),Ultimate Load 7d (kN),Strength 7d (MPa),Ultimate Load 28d (kN),Compressive Strength 28d (MPa),Conformity\n";
+  csvContent += "Certificate ID,Specimen ID,Project Agreement Number,Order Number,Client Name,Contractor,Inspector,Site Address,Building Description,Element,Casting Volume (m3),Concrete Supplier,Is Certified,Concrete Grade,Cement Type,Aggregate Size,Exposure Class,Slump,Samples Count,Dimension (mm),Ultimate Load 7d (kN),Strength 7d (MPa),Ultimate Load 28d (kN),Compressive Strength 28d (MPa),Conformity\n";
 
   completed.forEach(c => {
     const row = [
@@ -1609,12 +1686,6 @@ function exportReportsCSV() {
       `"${c.aggregateSize}"`,
       c.exposureClass,
       c.slump,
-      c.deliveryNote,
-      `"${c.mixerNo}"`,
-      c.batchNo,
-      `"${c.samplerName}"`,
-      c.timeStart,
-      c.timeEnd,
       c.samplesCount,
       c.dimension,
       c.failureLoad7d,

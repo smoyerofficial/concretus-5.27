@@ -195,7 +195,7 @@
         <div class="casting-form-grid">
           
           <div class="form-card">
-            <!-- STEP 1: STICKER VERIFICATION BLOCK (Updated to 6 digits) -->
+            <!-- STEP 1: STICKER VERIFICATION BLOCK -->
             <div class="sticker-verify-card" id="step-sticker">
                 <h2 style="font-family: var(--font-tech); color: var(--safety-orange); margin-bottom: 8px;"><i class="fa-solid fa-barcode"></i> אימות דף מדבקות נטילה</h2>
                 <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">לפני מילוי הפרטים, הקלד את מספר המדבקה (6 ספרות) להצמדה על קוביות הבדיקה.</p>
@@ -213,7 +213,7 @@
                 <div id="sticker-feedback" class="feedback"></div>
             </div>
 
-            <!-- STEP 2: COMPLETE COLLAPSIBLE FORM (Converted pre-filled values to placeholders) -->
+            <!-- STEP 2: COMPLETE COLLAPSIBLE FORM -->
             <form id="casting-form" class="hidden" onsubmit="handleCastSubmission(event)">
               
               <!-- Section 1: Admin & Order details -->
@@ -246,12 +246,10 @@
                   </div>
 
                   <div class="form-group-row">
-                    <!-- Optional (removed required constraint) -->
                     <div class="form-group">
                       <label for="contractor">הקבלן המבצע (אופציונלי)</label>
                       <input type="text" id="contractor" placeholder="סולל בונה בע״מ">
                     </div>
-                    <!-- Optional (removed required constraint) -->
                     <div class="form-group">
                       <label for="inspector">שם המפקח (אופציונלי)</label>
                       <input type="text" id="inspector" placeholder="אינג' אברהם כהן">
@@ -291,7 +289,6 @@
                     <input type="hidden" id="selected-element" value="" required>
                   </div>
 
-                  <!-- Volume field changed to standard number input -->
                   <div class="form-group">
                     <label for="volume-input">נפח יציקה כולל (במ"ק)</label>
                     <input type="number" step="0.5" id="volume-input" placeholder="8" class="form-control" style="width: 100%; text-align: right;" required>
@@ -307,7 +304,6 @@
                 </div>
                 <div class="accordion-content">
                   <div class="form-group-row">
-                    <!-- Concrete supplier changed to standard text input field -->
                     <div class="form-group">
                       <label for="supplier">ספק הבטון / המפעל</label>
                       <input type="text" id="supplier" placeholder="רדימיקס" class="form-control" required>
@@ -396,10 +392,10 @@
                 </div>
               </div>
 
-              <!-- Section 4: Field Sampling Details -->
+              <!-- Section 4: Dynamic Specimen Generation (Refactored) -->
               <div class="accordion">
                 <div class="accordion-header" onclick="toggleAccordion(this)">
-                  <span>4. פרטי הדגימה והבדיקה בשטח</span>
+                  <span>4. פרטי הדגימות והמדגמים בשטח</span>
                   <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <div class="accordion-content">
@@ -425,47 +421,27 @@
 
                   <div class="form-group-row">
                     <div class="form-group">
-                      <label for="delivery-note">מספר תעודת משלוח</label>
-                      <input type="tel" inputmode="numeric" id="delivery-note" placeholder="95205419" required>
-                    </div>
-                    <div class="form-group">
-                      <!-- Mixer field updated to accept numeric values cleanly without pre-filled words -->
-                      <label for="mixer-no">מספר משאית / ערבל</label>
-                      <input type="text" id="mixer-no" placeholder="349" required>
-                    </div>
-                  </div>
-
-                  <div class="form-group-row">
-                    <div class="form-group">
-                      <label for="batch-no">מספר אצווה (Batch)</label>
-                      <input type="text" id="batch-no" placeholder="1" required>
-                    </div>
-                    <div class="form-group">
                       <label for="sampler-name">שם הדוגם שביצע</label>
                       <input type="text" id="sampler-name" placeholder="משה לוי" required>
                     </div>
+                    <div class="form-group">
+                      <!-- Choosing how many specimens to generate -->
+                      <label>מספר מדגמים דרוש</label>
+                      <div class="adjuster-container" style="width: 100%;">
+                        <button type="button" class="adj-btn" onclick="adjustSpecimensCount(-1)">-</button>
+                        <div class="adj-val" id="samples-display">3</div>
+                        <button type="button" class="adj-btn" onclick="adjustSpecimensCount(1)">+</button>
+                      </div>
+                    </div>
                   </div>
 
-                  <div class="form-group-row">
-                    <div class="form-group">
-                      <label>שעת דגימה (משעה - עד שעה)</label>
-                      <div style="display: flex; gap: 10px;">
-                        <input type="time" id="time-start" class="form-control" required value="13:00">
-                        <input type="time" id="time-end" class="form-control" required value="13:30">
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label>מספר קוביות שנלקחו (מדגמים)</label>
-                      <div class="adjuster-container" style="width: 100%;">
-                        <button type="button" class="adj-btn" onclick="adjustValue('samples', -1)">-</button>
-                        <div class="adj-val" id="samples-display">6</div>
-                        <button type="button" class="adj-btn" onclick="adjustValue('samples', 1)">+</button>
-                      </div>
-                    </div>
+                  <!-- Container where dynamic forms will be injected -->
+                  <div id="specimens-dynamic-container">
+                    <!-- Injected dynamically via app.js -->
                   </div>
 
                   <!-- Specimen Dimensions Selection -->
-                  <div class="form-group">
+                  <div class="form-group" style="margin-top: 24px;">
                     <label>מידות תבנית קוביית הבטון</label>
                     <div class="radio-group">
                       <div class="radio-tile-label active-tile" onclick="selectDimensionTile(150, this)">
