@@ -1925,3 +1925,36 @@ body {
 .app-container.role-field_worker .manager-only {
   display: none !important;
 }
+/* --- Fine-Grained Role Based Sidebar Visibility --- */
+
+/* 1. Field Worker Rules (Sees Casting & Dispatch Log) */
+.role-field_worker #nav-dashboard,
+.role-field_worker #nav-lab,
+.role-field_worker #nav-reports,
+.role-field_worker .nav-group-title.manager-only {
+  display: none !important;
+}
+
+/* 2. Dispatcher Rules (Sees Dispatch Log ONLY) */
+.role-dispatcher #nav-dashboard,
+.role-dispatcher #nav-casting,
+.role-dispatcher #nav-lab,
+.role-dispatcher #nav-reports,
+.role-dispatcher .nav-group-title {
+  display: none !important;
+}
+.role-dispatcher #nav-dispatch {
+  display: flex !important;
+}
+
+/* 3. Lab Technician Rules (Sees Lab Press Room ONLY) */
+.role-lab_technician #nav-dashboard,
+.role-lab_technician #nav-casting,
+.role-lab_technician #nav-dispatch,
+.role-lab_technician #nav-reports,
+.role-lab_technician .nav-group-title {
+  display: none !important;
+}
+.role-lab_technician #nav-lab {
+  display: flex !important;
+}

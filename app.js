@@ -6,7 +6,6 @@
 const SUPABASE_URL = "https://vsgnqebypdyhakibruqj.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzZ25xZWJ5cGR5aGFraWJydXFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MDU2OTAsImV4cCI6MjA5NTQ4MTY5MH0.xno6BzFL917b7vjatJiw43aFmE-lKR0rNbgmZ7RyrtI";
 
-
 let supabaseClient = null;
 
 // Prevent naming collisions with window.supabase library
@@ -17,6 +16,14 @@ if (SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_ANON_KEY !== "YOUR_SUPABASE
     console.error("Supabase CDN failed to load.");
   }
 }
+
+// Allowed views mapped directly to roles to enforce secure client-side routing
+const ROLE_VIEW_PERMISSIONS = {
+  manager: ["dashboard-view", "casting-view", "dispatch-view", "lab-view", "reports-view"],
+  field_worker: ["casting-view", "dispatch-view"],
+  dispatch_guy: ["dispatch-view"],
+  lab_guy: ["lab-view"]
+};
 
 // Fallback seed data if Supabase credentials are not configured
 const SEED_BATCH_DATA = [
@@ -167,7 +174,7 @@ function updateSpecimensForms(count) {
 function adjustSpecimensCount(amount) {
   values.samples += amount;
   if (values.samples < 1) values.samples = 1;
-  if (values.samples > 10) values.samples = 10; // safety ceiling
+  if (values.samples > 10) values.samples = 10; 
   
   const displayElement = document.getElementById("samples-display");
   if (displayElement) displayElement.innerText = values.samples;
@@ -244,24 +251,39 @@ async function establishSessionUser(user) {
       }
     }
     
+    // Resolve role safely
     activeUserRole = data ? data.role : "field_worker";
+    if (!ROLE_VIEW_PERMISSIONS[activeUserRole]) {
+      activeUserRole = "field_worker"; // Safety fallback
+    }
+
     const userFullName = data ? data.full_name : user.email;
     
+    // Assign structural wrapper class
     const wrapper = document.getElementById("app-wrapper");
     wrapper.className = "app-container role-" + activeUserRole;
     
+    // Render profile text strings
     document.getElementById("current-user-name").textContent = userFullName;
-    document.getElementById("current-user-role").textContent = activeUserRole === "manager" ? "מנהל מערכת" : "דוגם שטח";
+    
+    const roleLabels = {
+      manager: "מנהל מערכת",
+      field_worker: "דוגם שטח",
+      dispatch_guy: "רכז משלוחים",
+      lab_guy: "טכנאי מעבדה"
+    };
+    document.getElementById("current-user-role").textContent = roleLabels[activeUserRole] || "משתמש";
     document.getElementById("current-user-avatar").textContent = userFullName.slice(0, 2).toUpperCase();
 
+    // Hide auth screen and trigger sidebar visibility checks
     document.getElementById("auth-panel").classList.add("hidden");
     document.getElementById("app-wrapper").classList.remove("hidden");
 
-    if (activeUserRole === "field_worker") {
-      switchActiveView("casting-view");
-    } else {
-      switchActiveView("dashboard-view");
-    }
+    updateSidebarVisibility();
+
+    // Route to first allowed page
+    const allowed = ROLE_VIEW_PERMISSIONS[activeUserRole];
+    switchActiveView(allowed[0]);
     
     await syncAllDataFromSupabase();
 
@@ -269,6 +291,28 @@ async function establishSessionUser(user) {
     console.error("Session establishment error:", err.message);
     showAuthScreen();
   }
+}
+
+// --- Dynamic Sidebar Visibility Controller ---
+function updateSidebarVisibility() {
+  const navItems = document.querySelectorAll(".sidebar .nav-item");
+  const allowedViews = ROLE_VIEW_PERMISSIONS[activeUserRole] || ["dispatch-view"];
+
+  navItems.forEach(item => {
+    const targetView = item.getAttribute("data-view");
+    const isAllowed = allowedViews.includes(targetView);
+    
+    const parentLi = item.closest("li");
+    if (parentLi) {
+      parentLi.style.display = isAllowed ? "block" : "none";
+    }
+  });
+
+  // Manage header grouping indicators dynamically
+  const managerHeaders = document.querySelectorAll(".sidebar .manager-only");
+  managerHeaders.forEach(el => {
+    el.style.display = (activeUserRole === "manager") ? "block" : "none";
+  });
 }
 
 function showAuthScreen() {
@@ -423,7 +467,9 @@ function setupRouter() {
   navItems.forEach(item => {
     item.addEventListener("click", () => {
       const targetView = item.getAttribute("data-view");
-      if (activeUserRole === "field_worker" && ["dashboard-view", "lab-view", "reports-view"].includes(targetView)) {
+      const allowedViews = ROLE_VIEW_PERMISSIONS[activeUserRole] || ["dispatch-view"];
+
+      if (!allowedViews.includes(targetView)) {
         alert("שגיאה: אין לך הרשאות לגשת לעמוד זה.");
         return;
       }
@@ -436,8 +482,10 @@ function setupRouter() {
 }
 
 function switchActiveView(viewId) {
-  if (activeUserRole === "field_worker" && ["dashboard-view", "lab-view", "reports-view"].includes(viewId)) {
-    viewId = "casting-view";
+  const allowedViews = ROLE_VIEW_PERMISSIONS[activeUserRole] || ["dispatch-view"];
+  
+  if (!allowedViews.includes(viewId)) {
+    viewId = allowedViews[0]; // Fallback to first allowed view
   }
 
   document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active-view"));
@@ -761,15 +809,21 @@ function renderDashboardCubes() {
     `;
 
     item.addEventListener("click", () => {
+      const allowedViews = ROLE_VIEW_PERMISSIONS[activeUserRole] || ["dispatch-view"];
+
       if (cube.status === "casted") {
-        switchActiveView("dispatch-view");
-        loadWaybillDetails(cube.id);
+        if (allowedViews.includes("dispatch-view")) {
+          switchActiveView("dispatch-view");
+          loadWaybillDetails(cube.id);
+        } else {
+          alert("אין לך הרשאות לצפות בפנקס המשלוחים.");
+        }
       } else if (cube.status === "transit" || cube.status === "tested_7d") {
-        if (activeUserRole === "manager") {
+        if (allowedViews.includes("lab-view")) {
           switchActiveView("lab-view");
           loadCubeToTestingChamber(cube.id);
         } else {
-          alert("פעולה חסומה: רק מנהלי מעבדה יכולים לגשת לחדר הבדיקות והלחיצה.");
+          alert("פעולה חסומה: רק בעלי תפקיד מתאים יכולים לגשת לחדר הבדיקות.");
         }
       } else if (cube.status === "completed") {
         if (activeUserRole === "manager") {
@@ -807,8 +861,11 @@ function renderCastingSideList() {
       <i class="fa-solid fa-angle-left" style="color: var(--text-muted);"></i>
     `;
     card.onclick = () => {
-      switchActiveView("dispatch-view");
-      loadWaybillDetails(c.id);
+      const allowedViews = ROLE_VIEW_PERMISSIONS[activeUserRole] || ["dispatch-view"];
+      if (allowedViews.includes("dispatch-view")) {
+        switchActiveView("dispatch-view");
+        loadWaybillDetails(c.id);
+      }
     };
     container.appendChild(card);
   });
@@ -930,7 +987,7 @@ async function handleCastSubmission(e) {
         contractor: newCube.contractor,
         inspector: newCube.inspector,
         site_address: newCube.siteAddress,
-        building_desc: newCube.building_desc,
+        building_desc: newCube.buildingDesc,
         element: newCube.element,
         volume: newCube.volume,
         supplier: newCube.supplier,

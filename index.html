@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -39,6 +38,16 @@
           <div class="form-group">
             <label for="auth-fullname">שם מלא</label>
             <input type="text" id="auth-fullname" placeholder="ישראל ישראלי">
+          </div>
+          <!-- Role selector choice instead of manually typing -->
+          <div class="form-group">
+            <label for="auth-role">תפקיד במערכת</label>
+            <select id="auth-role" class="form-control" style="text-align: right; direction: rtl; width: 100%;">
+              <option value="field_worker">דוגם שטח (טופס נטילה + ספר משלוחים)</option>
+              <option value="dispatcher">איש שילוח ולוגיסטיקה (ספר משלוחים בלבד)</option>
+              <option value="lab_technician">טכנאי מעבדה (חדר לחיצה ובדיקות בלבד)</option>
+              <option value="manager">מנהל מערכת (גישה מלאה לכל האפשרויות)</option>
+            </select>
           </div>
         </div>
 
@@ -286,7 +295,6 @@
                       <div class="btn-option" onclick="selectOption('element-group', this, 'רצפה')">רצפה</div>
                       <div class="btn-option" onclick="selectOption('element-group', this, 'אחר')">אחר</div>
                     </div>
-                    <!-- focusable custom check validation to keep required attribute fully working -->
                     <input type="text" id="selected-element" required style="opacity: 0; width: 0; height: 0; position: absolute; pointer-events: none;">
                   </div>
 
